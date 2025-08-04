@@ -1,0 +1,229 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}
+      {% trans "kquires | Login" %}
+{% endblock title %}
+
+{% block content %}
+<div
+  class="container-fluid bg-radial-gradient h-full d-flex justify-content-center align-items-center" 
+  style="background: url('{% static "images/bg.svg" %}') no-repeat center center fixed; background-size: cover; width: 100%; min-height: 100vh;"
+>
+
+    <div class="p-3 bg-white rounded shadow-lg" style="width:450px">
+        <div class="text-center mb-2">
+          <!-- Logo -->
+          <img src="{% static 'images/logo.svg' %}" alt="{% trans 'Logo' %}" class="mx-auto w-75 mt-0 mb-1" />
+          <h2 class="text-2xl font-semibold text-gray-700">{% trans "Login" %}</h2>
+        </div>
+        
+              <!-- Language Dropdown Form -->
+        <form action="{% url 'set_language' %}" method="post" id="language-form" style="position: absolute; top: 20px; left: 20px; z-index: 9999;" >
+          {% csrf_token %}
+          <input type="hidden" name="language" id="languageInput">
+          <div class="dropdown">
+            <button class="btn dropdown-toggle" type="button" id="languageDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+              {% if LANGUAGE_CODE == 'en' %}
+              <img style="width:30px" src="{% static 'images/eng-ar.png' %}" alt="{% trans 'English' %}">
+              {% else %}
+              <img style="width:30px" src="{% static 'images/eng-ar.png' %}" alt="{% trans 'Arabic' %}">
+              {% endif %}
+            </button>
+            <ul class="dropdown-menu" aria-labelledby="languageDropdown">
+              {% for lang_code, lang_name in LANGUAGES %}
+              <li>
+                <button class="dropdown-item" type="button" onclick="changeLanguage('{{ lang_code }}')">
+                  <img src="{% static 'images/' %}{{ lang_code }}.svg" alt="{{ lang_name }}" width="20" class="me-2">
+                  {{ lang_name }}
+                </button>
+              </li>
+              {% endfor %}
+            </ul>
+          </div>
+        </form>
+
+
+        <form method="post" action="{% url 'users:login' %} " id="login-form">
+          {% csrf_token %}
+
+          <!-- Non-field errors -->
+          {% if form.non_field_errors %}
+          <div class="alert alert-danger mt-3">
+            {{ form.non_field_errors }}
+          </div>
+          {% endif %}
+
+          <!-- Email Field -->
+          <div class="form-group mt-4 mb-4">
+            <div class="form-group mt-4 mb-4 position-relative">
+              <input
+                  type="text"
+                  name="login"
+                  id="login"
+                  placeholder="{% trans 'Enter email address' %}"
+                  class="form-control block w-full p-2.5 rounded border border-gray-300 focus:ring focus:ring-blue-500 focus:outline-none pe-5"
+                  required
+                  aria-label="{% trans 'Email Address' %}"
+                  style="text-align:right;"
+              />
+              <!-- Image inside the input field -->
+              <img
+                  src="{% static 'images/usericon.svg' %}"
+                  alt="{% trans 'Email Icon' %}"
+                  style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%);"
+              />
+          </div>
+            {% if form.login.errors %}
+            <div class="text-red-500 text-sm mt-1">
+              {{ form.login.errors }}
+            </div>
+            {% endif %}
+          </div>
+
+          <!-- Password Field -->
+          <div class="form-group mt-2 relative">
+            <div class="form-group mt-4 mb-4 position-relative">
+              <input
+              type="password"
+              name="password"
+              id="password"
+              placeholder="{% trans 'Password' %}"
+              class="form-control block w-full p-2.5 rounded border border-gray-300 focus:ring focus:ring-blue-500 focus:outline-none pe-5"
+              required
+              aria-label="{% trans 'Password' %}"
+              style="padding-right: 40px; text-align: right;"
+            />
+            <img
+            src="{% static 'images/passwordicon.svg' %}"  
+            alt="{% trans 'Password Icon' %}"
+            style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%);"
+          />
+            </div>
+            <div class="row">
+              <div class="col-md-7">
+            <label for="remember_me" class="flex text-gray-700">{% trans 'Did you forget your password?' %}</label>
+          </div>
+          <div class="col-md-5 d-flex justify-content-end align-items-center">
+            <input
+              type="checkbox"
+              name="show_password"
+              id="show_password"
+              class="mr-3"
+              aria-label="{% trans 'Show Password' %}"
+            />
+            <label for="show_password" class="text-gray-700 ms-2">{% trans 'Show Password' %}</label>
+          </div>
+        </div>
+          
+            {% if form.password.errors %}
+            <div class="text-red-500 text-sm mt-1">
+              {{ form.password.errors }}
+            </div>
+            {% endif %}
+              
+          </div>
+
+          <!-- Submit Button -->
+          <div class="mt-5 mb-0">
+            <button
+              type="submit"
+              class="btn btn-primary w-100 bg-blue-500 text-white py-2 rounded hover:bg-blue-600 focus:ring focus:ring-blue-300 focus:outline-none"
+            >
+            {% trans 'Login' %}
+            </button>
+            <button
+              type="button"
+              class="mt-2 btn btn-secondary w-100 bg-blue-500 text-white py-2 rounded hover:bg-blue-600 focus:ring focus:ring-blue-300 focus:outline-none"
+            >
+            <a id="sign-up-link" class="nav-link" href="{% url 'account_signup' %}">{% trans 'Sign Up' %}</a>
+            </button>
+          </div>
+
+          {{ redirect_field }}
+        </form>
+      </div>
+</div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+// Toggle password visibility
+document.addEventListener('DOMContentLoaded', () => {
+  const showPasswordCheckbox = document.getElementById('show_password');
+  const passwordField = document.getElementById('password');
+
+  showPasswordCheckbox.addEventListener('change', () => {
+    // Toggle the password field's type
+    const type = showPasswordCheckbox.checked ? 'text' : 'password';
+    passwordField.type = type;
+  });
+});
+
+ // Function to set a cookie
+ function setCookie(name, value, days) {
+    const date = new Date();
+    date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+    const expires = "expires=" + date.toUTCString();
+    document.cookie = name + "=" + value + ";" + expires + ";path=/";
+  }
+
+  // Function to get a cookie
+  function getCookie(name) {
+    const decodedCookie = decodeURIComponent(document.cookie);
+    const cookies = decodedCookie.split(';');
+    for (let i = 0; i < cookies.length; i++) {
+      let cookie = cookies[i].trim();
+      if (cookie.indexOf(name + "=") === 0) {
+        return cookie.substring(name.length + 1);
+      }
+    }
+    return "";
+  }
+
+  // Change language and save direction
+  function changeLanguage(langCode) {
+
+
+    document.getElementById('languageInput').value = langCode;
+
+    // Set language in a cookie
+    setCookie('language', langCode, 7); // Store for 7 days
+    const body = document.body;
+
+    // Submit the form
+    document.getElementById('language-form').submit();
+  }
+
+  document.addEventListener("DOMContentLoaded", function () {
+      const form = document.getElementById('login-form');
+      form.addEventListener("submit", async function (event) {
+          event.preventDefault(); // Prevent traditional form submission
+          
+          const loginInput = document.getElementById("login").value;
+          const passwordInput = document.getElementById("password").value;
+  
+          const response = await fetch("{% url 'users:login' %}", {
+              method: "POST",
+              headers: {
+                  "Content-Type": "application/json",
+                  "X-CSRFToken": "{{ csrf_token }}",
+              },
+              body: JSON.stringify({
+                  username: loginInput,
+                  password: passwordInput,
+              }),
+          });
+  
+          const data = await response.json();
+          if (response.ok) {
+              window.location.href = "/dashboard/"; // Redirect after login
+          } else {
+              alert("Error: " + data.error);
+          }
+      });
+  });
+  
+  </script>
+  
+{% endblock content %}

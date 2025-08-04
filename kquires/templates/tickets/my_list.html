@@ -1,0 +1,254 @@
+{% extends "base.html" %}
+{% load static %}
+{% load i18n %}
+{% block title %}
+  kquires | {% trans 'My Tickets List'%}
+{% endblock title %}
+{% block content %}
+
+{% include "pages/layout/navbar.html" %}
+{% load custom_tags %}
+<style>
+  .form-section {
+    background-color: #fff;
+    padding: 20px;
+
+    border-radius: 10px;
+  }
+  .profile-card {
+    text-align: center;
+    background-color: #fff;
+    padding: 20px;
+
+    border-radius: 10px;
+  }
+  .profile-card img {
+    border-radius: 50%;
+    max-width: 150px;
+    margin-bottom: 10px;
+  }
+  .custom-table {
+
+    border-radius: 8px;
+    overflow: hidden;
+}
+.custom-table thead {
+    background-color: #f1f5f9;
+}
+.custom-table tbody tr {
+    background-color: #ffffff;
+}
+.custom-table tbody tr:nth-child(even) {
+    background-color: #f8f9fa;
+}
+.new-ticket-btn {
+    margin-top: 10px;
+}
+</style>
+<div class="container my-5">
+  <div class="row">
+
+    <!-- Profile Card Section -->
+    <div class="col-md-3">
+      <div class="profile-card text-center p-3 border rounded shadow-sm" style="background-color: #f9f9f9;">
+        <!-- Profile Image -->
+        <img
+          src="{% static 'images/sheikh.svg' %}"
+          alt="{% trans 'Profile Image' %}" class="rounded-circle shadow" style="width: 150px; height: 150px; object-fit: cover;">
+
+        <!-- List with Icons and Text -->
+        <ul class="list-unstyled text-start">
+          <!-- Main Information -->
+          <li class="d-flex align-items-center justify-content-between border-bottom py-2">
+            <a href="{% url 'users:profile' %}"
+              class="text-decoration-none d-flex align-items-center {% is_active 'users:profile' as active %}{% if active %} text-a94bea {% else %} text-dark {% endif %}">
+                <img
+                    src="{% static 'images/tableruser.svg' %}"
+                    alt="{% trans 'Main Info Icon' %}"
+                    class="me-2 {% if active %} icon-a94bea {% endif %}"
+                />
+                <span>{% trans 'Main Information' %}</span>
+            </a>
+
+          </li>
+
+          <!-- Change Password -->
+          <li class="d-flex align-items-center justify-content-between border-bottom py-2">
+            <a href="{% url 'users:password_reset' %}"
+                class="text-decoration-none d-flex align-items-center {% is_active 'users:password_reset' as active %}{% if active %} text-a94bea {% else %} text-dark {% endif %}">
+                <img
+                    src="{% static 'images/lock.svg' %}"
+                    alt="{% trans 'Change Password Icon' %}"
+                    class="me-2 {% if active %} icon-a94bea {% endif %}"
+                />
+                <span>{% trans 'Change Password' %}</span>
+            </a>
+
+          </li>
+
+          <!-- Support -->
+          <li class="d-flex align-items-center justify-content-between py-2">
+            <a href="{% url 'tickets:my_list' %}"
+              class="text-decoration-none d-flex align-items-center {% is_active 'tickets:my_list' as active %}{% if active %} text-a94bea {% else %} text-dark {% endif %}">
+                <img
+                    src="{% static 'images/customersupport.svg' %}"
+                    alt="{% trans 'Support Icon' %}"
+                    class="me-2 {% if active %} icon-a94bea {% endif %}"
+                />
+                <span>{% trans 'Support' %}</span>
+            </a>
+
+          </li>
+        </ul>
+      </div>
+    </div>
+    <!-- Form Section -->
+    <div class="col-md-9">
+      <div class="form-section">
+        <form>
+            <div class="row" >
+                <div class="custom-table">
+                    <table class="table text-center">
+                        <thead>
+                            <tr>
+                                <th scope="col">{% trans 'Ticket Number' %}</th>
+                                <!-- <th scope="col">{% trans 'Category' %}</th> -->
+                                <th scope="col">{% trans 'Title' %}</th>
+                                <th scope="col">{% trans 'Status' %}</th>
+                                <th scope="col">{% trans 'Actions' %}</th>
+                                <th scope="col">{% trans 'Date Added' %}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                          {% for ticket in tickets %}
+                            <tr>
+                               
+                                <td>{{ ticket.id }}</td>
+                                <!-- <td>{{ticket.category.name}}</td> -->
+                                <td>{{ ticket.title }}</td>
+                                <td>
+                                  {% if ticket.status %}
+                                    {% trans ticket.status %}
+                                  {% else %}
+                                    {% trans "pending" %}
+                                  {% endif %}
+                                </td>
+                                
+
+                                <td>
+                                  <a 
+                                  href="javascript:void(0);" 
+                                  class="btn btn-primary align-items-center me-2" 
+                                  data-bs-target="#EditTicketModal" 
+                                  onclick="fetchTicketDetails({{ ticket.id }})">
+                                    <img src="{% static 'images/edit.svg' %}" alt="{% trans 'Edit' %}" >
+                                    {% trans "Edit" %}
+                                  </a>
+                                </td>
+                                <td>{{ticket.created_at}}</td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                     <!-- Pagination Controls -->
+                  <nav aria-label="Page navigation">
+                    <ul class="pagination d-flex justify-content-center">
+                        {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page=1" aria-label="{% trans 'First' %}">
+                                    <span aria-hidden="true">&laquo;</span>
+                                </a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}">{% trans 'Previous' %}</a>
+                            </li>
+                        {% else %}
+                            <li class="page-item disabled">
+                                <span class="page-link">&laquo;</span>
+                            </li>
+                        {% endif %}
+
+                        {% for page_num in page_obj.paginator.page_range %}
+                            {% if page_num == page_obj.number %}
+                                <li class="page-item active">
+                                    <span class="page-link">{{ page_num }}</span>
+                                </li>
+                            {% else %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_num }}">{{ page_num }}</a>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+
+                        {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.next_page_number }}">{% trans 'Next' %}</a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}" aria-label="{% trans 'Last' %}">
+                                    <span aria-hidden="true">&raquo;</span>
+                                </a>
+                            </li>
+                        {% else %}
+                            <li class="page-item disabled">
+                                <span class="page-link">&raquo;</span>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                </div>
+                <button type="button" class="btn btn-primary new-ticket-btn" data-bs-toggle="modal" data-bs-target="#newTicketModal">
+                  + {% trans 'New Ticket' %}
+              </button>
+            </div>
+
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% include 'tickets/partials/form.html' %}
+<script>
+  function fetchTicketDetails(ticketId) {
+    fetch(`{% url 'tickets:ticket_detail_api' '000' %}`.replace('000', ticketId))
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+
+        // Populate modal fields with fetched data
+        document.getElementById('id').value = data.id;
+        document.getElementById('title').value = data.title;
+        document.getElementById('description').value = data.description;
+
+        // Set the correct <select> option for category
+        //const categorySelect = document.getElementById('category');
+        //const options = categorySelect.options;
+
+        //for (let i = 0; i < options.length; i++) {
+        //    if (options[i].text === data.category || options[i].value === data.category) {
+        //        // Match category by text (name) or value (ID)
+        //        categorySelect.selectedIndex = i;
+        //        break;
+        //    }
+        //}
+
+        // Show the modal
+        const modal = new bootstrap.Modal(document.getElementById('newTicketModal'));
+        modal.show();
+
+    })
+    .catch(error => console.error('Error fetching ticket details:', error));
+
+
+     // Show the modal
+     const modal = new bootstrap.Modal(document.getElementById('#EditTicketModal'));
+        modal.show();
+}
+
+</script>
+{% endblock content %}

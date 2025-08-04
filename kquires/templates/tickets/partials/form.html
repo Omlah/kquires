@@ -1,0 +1,92 @@
+<!-- Modal for New Ticket -->
+{% load i18n %}
+<div class="modal fade" id="newTicketModal" tabindex="-1" aria-labelledby="newTicketModalLabel" aria-hidden="true">
+    <form method="POST" action="{% url 'tickets:create' %}">
+        {% csrf_token %}
+        <input type="hidden" name="id" id="id">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="newTicketModalLabel">{% trans "New Ticket" %}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% trans 'Close' %}"></button>
+                </div>
+                <div class="modal-body">
+                    <div>
+                        <!-- Title Field -->
+                        <div class="mb-3">
+                            <label for="title" class="form-label">{% trans "Title" %}</label>
+                            <input required type="text" name="title" class="form-control" id="title" placeholder="{% trans 'Enter ticket title' %}">
+                        </div>
+
+                        <!-- Description Field -->
+                        <div class="mb-3">
+                            <label for="description" class="form-label">{% trans "Description" %}</label>
+                            <textarea class="form-control" name="description" id="description" rows="3" placeholder="{% trans 'Enter ticket description' %}"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Close" %}</button>
+                    <button type="submit" class="btn btn-primary">{% trans "Save" %}</button>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Status Update Modal -->
+<div class="modal fade" id="statusUpdateModal" tabindex="-1" aria-labelledby="statusUpdateModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="statusUpdateForm" method="POST" action="">
+                {% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title" id="statusUpdateModalLabel">{% trans "Update Status" %}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% trans 'Close' %}"></button>
+                </div>
+                <div class="modal-body">
+                    <p>{% trans "Are you sure you want to update the status of this Ticket?" %}</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
+                    <button type="submit" class="btn btn-primary">{% trans "Update" %}</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Ticket Modal -->
+<div class="modal fade" id="EditTicketModal" tabindex="-1" aria-labelledby="EditTicketModalLabel" aria-hidden="true">
+    <form method="POST" action="{% url 'tickets:create' %}">
+        {% csrf_token %}
+        <input type="hidden" name="id" id="id">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="EditTicketModalLabel">{% trans "Edit Ticket" %}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% trans 'Close' %}"></button>
+                </div>
+                <div class="modal-body">
+                    <div>
+                        <!-- Title Field -->
+                        <div class="mb-3">
+                            <label for="title" class="form-label">{% trans "Title" %}</label>
+                            <input required type="text" name="title" class="form-control" id="title" placeholder="{% trans 'Enter ticket title' %}">
+                        </div>
+
+                        <!-- Description Field -->
+                        <div class="mb-3">
+                            <label for="description" class="form-label">{% trans "Description" %}</label>
+                            <textarea class="form-control" name="description" id="description" rows="3" placeholder="{% trans 'Enter ticket description' %}"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Close" %}</button>
+                    <button type="submit" class="btn btn-primary">{% trans "Save" %}</button>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>

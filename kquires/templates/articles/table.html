@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}
+    kquires | {% trans 'Article'%}
+{% endblock title %}
+{% block content %}
+{% include "pages/layout/navbar.html" %}
+{% load static %}
+{% load custom_filters %}
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+
+
+
+<style>
+    .container-custom {
+        max-width: 1200px;
+       
+        margin: 0 auto;
+    }
+
+    .sidebar {
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 8px;
+    }
+
+    .sidebar a,
+    .article-title {
+        font-weight: normal !important;
+        text-decoration: none;
+        color: #333;
+    }
+
+    .sidebar a:hover,
+    .article-title:hover {
+        color: #A94BEA;
+        text-decoration: underline;
+    }
+
+    .articles-card {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+        border: 1px solid #e0e0e0;
+    }
+
+    .article-title {
+        font-size: 20px;
+        color: #007bff;
+    }
+
+    .article-content {
+        font-size: 15px;
+        color: #555;
+        margin-top: 5px;
+    }
+   
+</style>
+
+<div class="container">
+    {% include 'dashboard/partials/searchbar.html' %}
+    <div class="row mt-5">
+        <!-- Sidebar (Categories & Subcategories Dropdown) -->
+        <div class="col-md-3 sidebar">
+            <h3 class="text-muted">{% trans "Categories" %}
+            </h3>
+            <ul class="list-unstyled mt-3">
+                {% for category in categories %}
+                    <li class="mb-2">
+                        <!-- Category Name with Dropdown Arrow -->
+                        <a href="{% url 'articles:table_overview' %}?category_id={{ category.id }}" 
+                           {% if category_id == category.id %} style="color: #A94BEA !important" {% endif %} 
+                           class="d-flex justify-content-between align-items-center"
+                           data-bs-toggle="collapse" 
+                           data-bs-target="#subcategories-{{ category.id }}" 
+                           aria-expanded="false" 
+                           aria-controls="subcategories-{{ category.id }}">
+                            {{forloop.counter}}.{{" "}}{{ category.name }}
+                            {% with category.all_sub_categories.all as subcategories %}
+                                {% if subcategories %}
+                                <!-- <i class="bi bi-chevron-down"></i> -->
+                                <i class="dropdown-toggle"></i>
+                                
+                                {% endif %}
+                            {% endwith %}
+                        </a>
+
+                        <!-- Subcategories List (Hidden by Default) -->
+                        {% with category.all_sub_categories.all as subcategories %}
+                            {% if subcategories %}
+                                <ul id="subcategories-{{ category.id }}" class="collapse list-unstyled mt-2 ps-3">
+                                    {% for subcategory in subcategories %}
+                                        <li>
+                                          
+                                            <i class="bi bi-dot"></i>
+                                            <a href="{% url 'articles:table_overview' %}?category_id={{ category.id }}&sub_category_id={{ subcategory.id }}" 
+                                               {% if sub_category_id == subcategory.id %} style="color: #A94BEA !important" {% endif %}>
+                                                {{ subcategory.name }}
+                                            </a>
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            {% endif %}
+                        {% endwith %}
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <!-- Articles Section -->
+        <div class="col-md-9">
+            <div class="articles-card">
+                <h3 class="text-muted">{% trans "Articles" %}</h3>
+                <p class="text-muted">{% trans "Browse through articles based on categories and subcategories." %}</p>
+
+                <div class="article-list">
+                    {% for article in articles %}
+                        <div class="mb-4">
+                         
+                            <a href="{% url 'articles:index' article.id %}" 
+                               class="article-title text-dark text-decoration-underline">
+                                {{ article.title }}
+                            </a>
+                        </div>
+                    {% empty %}
+                        <p class="text-muted">{% trans "No articles available." %}</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock content %}

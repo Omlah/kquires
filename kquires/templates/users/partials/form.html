@@ -1,0 +1,327 @@
+{% load static %}
+{% load i18n %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css">
+
+<!-- Large modal to accommodate all fields -->
+<div class="modal fade" id="newUserModal" tabindex="-1" aria-labelledby="newUserModalLabel" aria-hidden="true">
+    <form method="POST" action="{% url 'users:create' %}" enctype="multipart/form-data">
+      {% csrf_token %}
+      <input type="hidden" name="id" id="id">
+  
+      <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+          <!-- Modal Header -->
+          <div class="modal-header">
+            <h5 class="modal-title" id="newUserModalLabel">{% trans "New User" %}</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% trans 'Close' %}"></button>
+          </div>
+  
+          <!-- Modal Body -->
+          <div class="modal-body">
+            <div class="row">
+              <!-- Employee ID -->
+              <div class="mb-3 col-md-6">
+                <label for="employee_id" class="form-label">{% trans "Employee ID" %}</label>
+                <input
+                required
+                  type="text"
+                  name="employee_id"
+                  class="form-control"
+                  id="employee_id"
+                  placeholder="{% trans 'Enter employee id' %}"
+                >
+              </div>
+              <!-- Name -->
+              <div class="mb-3 col-md-6">
+                <label for="name" class="form-label">{% trans "Name" %}</label>
+                <input
+                required
+                  type="text"
+                  name="name"
+                  class="form-control"
+                  id="name"
+                  placeholder="{% trans 'Enter user name' %}"
+                >
+              </div>
+              <!-- Email -->
+              <div class="mb-3 col-md-6">
+                <label for="email" class="form-label">{% trans "Email" %}</label>
+                <input
+                required
+                  type="email"
+                  name="email"
+                  class="form-control"
+                  id="email"
+                  placeholder="{% trans 'Enter email address' %}"
+                >
+              </div>
+              <div class="mb-3 col-md-6">
+                <label for="password" class="form-label">{% trans "Password" %}</label>
+                <input
+                required
+                  type="password"
+                  name="password"
+                  class="form-control"
+                  id="password"
+                  placeholder="{% trans 'Enter Password' %}"
+                >
+              </div>
+              <!-- Phone Number -->
+              {% comment %} <div class="mb-3 col-md-6" id="phone_number_div">
+                <label for="phone_number" class="form-label">{% trans "Phone Number" %}</label>
+                <input
+                required
+                  type="text"
+                  name="phone_number"
+                  class="form-control"
+                  id="phone_number"
+                  placeholder="{% trans 'Enter phone number' %}"
+                >
+              </div> {% endcomment %}
+              <!-- Mobile Number -->
+              {% comment %} <div class="mb-3 col-md-6" id="mobile_number_div">
+                <label for="mobile_number" class="form-label">{% trans "Mobile Number" %}</label>
+                <input
+                required
+                  type="text"
+                  name="mobile_number"
+                  class="form-control"
+                  id="mobile_number"
+                  placeholder="{% trans 'Enter mobile number' %}"
+                >
+              </div> {% endcomment %}
+              <!-- Job Title -->
+              <div class="mb-3 col-md-6">
+                <label for="job_title" class="form-label">{% trans "Job Title" %}</label>
+                <input
+                required
+                  type="text"
+                  name="job_title"
+                  class="form-control"
+                  id="job_title"
+                  placeholder="{% trans 'Enter job title' %}"
+                >
+              </div>
+              <!-- Status -->
+              <div class="mb-3 col-md-6">
+                <label for="status" class="form-label">{% trans "Status" %}</label>
+                <select
+                  name="status"
+                  class="form-control"
+                  id="status"
+                  required
+                >
+                  <option value="True">{% trans "Active" %}</option>
+                  <option value="False">{% trans "In-active" %}</option>
+                </select>
+              </div>
+              <!-- Registration Date -->
+              <div class="mb-3 col-md-6">
+                <label for="registration_date" class="form-label">{% trans "Registration Date" %}</label>
+                <input
+                  required
+                  readonly
+                  type="date"
+                  name="registration_date"
+                  class="form-control"
+                  id="registration_date"
+                  value="{{ today_date }}"
+                >
+              </div>
+              <!-- Department -->
+              <div class="mb-3 col-md-6">
+                <label for="department" class="form-label">
+                  {% trans "Department" %}
+                  <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addDepartmentModal">
+                    {% trans "Add" %}
+                  </button>
+                  <button type="button" class="btn btn-secondary" id="editDepartmentBtn" disabled data-bs-toggle="modal" data-bs-target="#editDepartmentModal">
+                    {% trans "Edit" %}
+                  </button>
+                
+                  <button type="button" 
+                  class="btn btn-danger" 
+                  id="deleteDepartmentBtn" 
+                  disabled 
+                  data-bs-toggle="modal" 
+                  data-bs-target="#deleteConfirmationModal" 
+                  onclick="setDeleteFormAction()">
+            {% trans "Delete" %}
+          </button>
+          
+                
+                </label>
+                <select class="form-select" name="department" id="department">
+                  <option selected hidden>{% trans "Select Department" %}</option>
+                  {% for department in departments %}
+                    <option value="{{ department.id }}">{{ department.name }}</option>
+                  {% endfor %}
+                </select>
+                
+              </div>
+              
+              <!-- Role -->
+              <div class="mb-3 col-md-6">
+                <label for="role" class="form-label">{% trans "Role" %}</label>
+                <select
+                  name="role"
+                  class="form-control"
+                  id="role"
+                  required
+                >
+                  <option value="admin">{% trans "Admin" %}</option>
+                  <option value="article_writer">{% trans "Article Writer" %}</option>
+                  <option value="approval_manager">{% trans "Approval Manager" %}</option>
+                  <option value="staff">{% trans "Staff" %}</option>
+                  <option value="manager">{% trans "Manager" %}</option>
+                  <option value="employee">{% trans "Employee" %}</option>
+                  
+                </select>
+              </div>
+              <!-- Email Enabled -->
+              <div class="mt-5 col-md-6">
+                <label for="email_enabled" class="form-label">{% trans "Email Enabled" %}</label>
+                <input
+                  type="checkbox"
+                  name="email_enabled"
+                  class="form-check-input"
+                  id="email_enabled"
+                >
+              </div>
+            </div>
+          </div>
+  
+          <!-- Modal Footer -->
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Close" %}</button>
+            <button type="submit" class="btn btn-primary">{% trans "Save" %}</button>
+          </div>
+        </div>
+      </div>
+    </form>
+</div>
+
+<div class="modal fade" id="uploadFileModal" tabindex="-1" aria-labelledby="uploadFileModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="uploadFileModalLabel">{% trans "Upload File" %}</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% trans 'Close' %}"></button>
+        </div>
+        <div class="modal-body">
+          <form id="uploadFileForm" method="post" enctype="multipart/form-data" action="{% url 'users:upload' %}">
+            {% csrf_token %}
+            <div class="mb-3">
+              <label for="fileInput" class="form-label">{% trans "Choose a CSV or Excel File" %}</label>
+              <input
+                class="form-control"
+                type="file"
+                id="fileInput"
+                name="file"
+                accept=".csv, .xlsx"
+                required
+              >
+            </div>
+            <div class="modal-footer">
+              <a href="{% static 'users.xlsx' %}" download class="btn btn-success">{% trans "Download Format" %}</a>
+              <button type="submit" class="btn btn-primary">{% trans "Upload" %}</button>
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+</div>
+
+
+<!-- Modal -->
+<div class="modal fade" id="addDepartmentModal" tabindex="-1" aria-labelledby="addDepartmentModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="addDepartmentModalLabel">{% trans "Add Department" %}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="addDepartmentForm" action="{% url 'departments:user.create' %}" method="POST">
+          {% csrf_token %}
+          <div class="mb-3">
+            <label for="departmentName" class="form-label">{% trans "Department Name" %}</label>
+            <input type="text" class="form-control" id="departmentName" name="name" required>
+          </div>
+          <button type="submit" class="btn btn-primary">{% trans "Save" %}</button>
+        </form>
+        <div id="message" class="mt-3"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- Edit Department Modal -->
+<div class="modal fade" id="editDepartmentModal" tabindex="-1" aria-labelledby="editDepartmentModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="editDepartmentModalLabel">{% trans "Edit Department" %}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="editDepartmentForm" action="{% url 'departments:user.create' %}" method="POST">
+          {% csrf_token %}
+          <input type="hidden" id="editDepartmentId" name="id">
+          <div class="mb-3">
+            <label for="editDepartmentName" class="form-label">{% trans "Department Name" %}</label>
+            <input type="text" class="form-control" id="editDepartmentName" name="name" required>
+          </div>
+          <button type="submit" class="btn btn-primary">{% trans "Save Changes" %}</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteConfirmationModal" tabindex="-1" aria-labelledby="deleteConfirmationModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+      <div class="modal-content">
+          <form id="deleteForm" method="POST">
+              {% csrf_token %}
+              <div class="modal-header">
+                  <h5 class="modal-title" id="deleteConfirmationModalLabel">{% trans "Confirm Delete" %}</h5>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% trans 'Close' %}"></button>
+              </div>
+              <div class="modal-body">
+                  {% trans "Are you sure you want to delete this item? This action cannot be undone." %}
+              </div>
+              <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
+                  <button type="submit" class="btn btn-danger">{% trans "Delete" %}</button>
+              </div>
+          </form>
+      </div>
+  </div>
+</div>
+
+<!-- Delete User Modal -->
+<div class="modal fade" id="deleteUserConfirmationModal" tabindex="-1" aria-labelledby="deleteUserModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <form id="deleteUserForm" method="post">
+      {% csrf_token %}
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="deleteUserModalLabel">{% trans "Confirm Delete" %}</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% trans 'Close' %}"></button>
+        </div>
+        <div class="modal-body">
+          <p>{% trans "Are you sure you want to delete this user?" %}</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
+          <button type="submit" class="btn btn-danger">{% trans "Delete" %}</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+

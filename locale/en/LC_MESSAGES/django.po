@@ -1,0 +1,81 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-01-16 08:19+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+#: kquires/templates/account/logout.html:20
+msgid "Are you sure you want to sign out?"
+msgstr ""
+
+#: kquires/templates/account/logout.html:30
+msgid "Sign Out"
+msgstr ""
+
+#: kquires/templates/account/verification_sent.html:16
+msgid "Verify Your Email Address"
+msgstr ""
+
+#: kquires/templates/account/verification_sent.html:20
+msgid ""
+"\n"
+"            We have sent an email to you for verification. Follow the link "
+"provided to finalize the signup process. If you do not see the verification "
+"email in your main inbox, check your spam folder. Please contact us if you "
+"do not receive the verification email within a few minutes.\n"
+"            "
+msgstr ""
+
+#: kquires/templates/allauth/layouts/entrance.html:8
+msgid "Sign In"
+msgstr ""
+
+#: kquires/users/admin.py:24
+msgid "Personal info"
+msgstr ""
+
+#: kquires/users/admin.py:26
+msgid "Permissions"
+msgstr ""
+
+#: kquires/users/admin.py:38
+msgid "Important dates"
+msgstr ""
+
+#: kquires/users/apps.py:9
+msgid "Users"
+msgstr ""
+
+#: kquires/users/forms.py:80 kquires/users/tests/test_forms.py:35
+msgid "This email has already been taken."
+msgstr ""
+
+#: kquires/users/models.py:19
+msgid "Name of User"
+msgstr ""
+
+#: kquires/users/models.py:20
+msgid "email address"
+msgstr ""
+
+#: kquires/users/tests/test_views.py:72 kquires/users/views.py:71
+msgid "Information successfully updated"
+msgstr ""
+
+
+msgid "Welcome"
+msgstr ""
+ 

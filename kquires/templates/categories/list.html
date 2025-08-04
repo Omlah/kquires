@@ -1,0 +1,307 @@
+{% extends "pages/layout/sidebar.html" %}
+{% load static %}
+{% load i18n %}
+{% block title %}
+      kquires | {% trans 'Categories List'%}
+    {% endblock title %}
+{% block content %}
+<style>
+.form-section {
+    background-color: #fff;
+    padding: 20px;
+   
+    border-radius: 10px;
+  }
+  .profile-card {
+    text-align: center;
+    background-color: #fff;
+    padding: 20px;
+   
+    border-radius: 10px;
+  }
+  .profile-card img {
+    border-radius: 50%;
+    max-width: 150px;
+    margin-bottom: 10px;
+  }
+  .custom-table {
+   
+    border-radius: 8px;
+    overflow: hidden;
+}
+.custom-table thead {
+    background-color: #f1f5f9;
+}
+.custom-table tbody tr {
+    background-color: #ffffff;
+}
+.custom-table tbody tr:nth-child(even) {
+    background-color: #f8f9fa;
+}
+.new-ticket-btn {
+    margin-top: 10px;
+}
+.header-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: #f8f9fa; /* Background color */
+    padding: 10px;
+    /* Border for layout visibility */
+}
+
+.btn-new {
+    background-color: #007bff; /* Blue background */
+    color: white;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.btn-new:hover {
+    background-color: #0056b3; /* Darker blue on hover */
+}
+
+.search-bar input {
+    width: 300px;
+    padding: 8px;
+   
+    border-radius: 4px;
+}
+
+.btn-categories {
+    background-color: #f1f1f1;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+</style>
+<div class="d-flex align-items-center justify-content-between bg-light p-2">
+    <div class="text-center" style="font-size: 20px; color:black; font-weight: bold; cursor: pointer;">
+        {% trans "Categories" %}
+    </div>
+    
+    <div class="search-bar mx-auto my-3" style="width: 300px; position: relative;">
+        <form id="search-form" hx-get="{% url 'categories:list' %}" hx-target="#categories-table" hx-trigger="keyup changed delay:300ms">
+            <input
+                type="text"
+                id="category-search"
+                class="form-control form-control-sm"
+                placeholder="{% trans 'Search Categories' %}"
+                name="q"
+                {% if LANGUAGE_CODE == 'ar' %}
+                    dir="rtl"
+                    style="padding-right: 10px; text-align: right;"
+                {% else %}
+                    dir="ltr"
+                    style="padding-left: 10px; text-align: left;"
+                {% endif %}
+            />
+        </form>
+    
+        {% if LANGUAGE_CODE == 'ar' %}
+            <!-- Icon on the left for Arabic (RTL) -->
+            <img
+                src="{% static 'images/searchb.svg' %}"
+                alt="{% trans 'Search Icon' %}"
+                class="position-absolute top-50 start-0 translate-middle-y"
+                style="width: 20px; height: 20px;"
+            />
+        {% else %}
+            <!-- Icon on the right for LTR -->
+            <img
+                src="{% static 'images/searchb.svg' %}"
+                alt="{% trans 'Search Icon' %}"
+                class="position-absolute top-50 end-0 translate-middle-y"
+                style="width: 20px; height: 20px;"
+            />
+        {% endif %}
+    </div>
+    
+      
+    <button type="button" class="btn btn-primary new-category-btn" data-bs-toggle="modal" data-bs-target="#newCategoryModal">
+        + {% trans "New Category" %}
+    </button>
+    <!-- <a href="{% url 'categories:export_csv' %}"><img src="{% static 'images/export.svg' %}" alt="{% trans 'Export Icon' %}" class="ms-2" ></a> -->
+</div>
+
+<!-- Container to align table with the above div -->
+<div class="container-fluid mt-3">
+    <div class="form-section">
+      <div id="categories-table">
+          {% include 'categories/partials/table.html' %}
+      </div>
+    </div>
+</div>
+
+
+{% include 'categories/partials/form.html' %}
+
+<script>
+    function fetchCategoryDetails(ticketId) {
+        fetch(`{% url 'categories:category_detail_api' '000' %}`.replace('000', ticketId))
+            .then(response => response.json())
+            .then(data => { 
+                // Populate modal fields with fetched data
+                document.getElementById('id').value = data.id;
+                document.getElementById('name').value = data.name;
+                document.getElementById('departments').value = data.departments;
+                const departmentSelect = document.getElementById('departments');
+
+                Array.from(departmentSelect.options).forEach(option => {
+                    option.selected = false; // Clear any previous selections
+                });
+                
+                // Ensure departments is an array and set the matching options as selected
+                if (Array.isArray(data.departments)) {
+                    data.departments.forEach(department => {
+                        const option = Array.from(departmentSelect.options).find(opt => opt.value === department.id.toString());
+                        if (option) {
+                            option.selected = true; // Mark the option as selected
+                        }
+                    });
+                }
+
+
+                if (data.type === 'Main') {
+                    document.getElementById('main').checked = true;
+                    document.querySelector('.parent_category_div').style.display = 'none';
+                    document.querySelector('.logo_div').style.display = 'block';
+                } else if (data.type === 'Sub') {
+                    document.getElementById('sub').checked = true;
+                    document.querySelector('.logo_div').style.display = 'none';
+                    document.querySelector('.parent_category_div').style.display = 'block';
+
+                    const parentCategorySelect = document.getElementById('parent_category');
+                    Array.from(parentCategorySelect.options).forEach(option => {
+                        option.selected = false; // Clear previous selection
+                    });
+
+                    if (data.parent_category) {
+                        const parentOption = Array.from(parentCategorySelect.options).find(opt => opt.value === data.parent_category.toString());
+                        if (parentOption) {
+                            parentOption.selected = true; // Mark the matching parent category as selected
+                        }
+                    }
+                }
+    
+                // Show the modal
+                var modal = new bootstrap.Modal(document.getElementById('newCategoryModal'));
+                modal.show();
+            })
+            .catch(error => console.error('Error fetching category details:', error));
+    }
+
+
+
+
+    function setDeleteFormAction(targetId) {
+        const deleteForm = document.getElementById('deleteForm');
+        const deleteUrl = `{% url 'categories:delete' '000' %}`.replace('000', targetId); // Update the path to match your URL configuration
+        deleteForm.action = deleteUrl;
+    }
+
+
+    function setStatusModalData(targetId, status) {
+        const form = document.getElementById('statusUpdateForm');
+        const actionUrl = `{% url 'categories:status' '000' %}`.replace('000', targetId);
+        form.action = actionUrl;
+    
+        // Add status as a hidden input in the form
+        let statusInput = form.querySelector('input[name="status"]');
+        if (!statusInput) {
+            statusInput = document.createElement('input');
+            statusInput.type = 'hidden';
+            statusInput.name = 'status';
+            form.appendChild(statusInput);
+        }
+        statusInput.value = status;
+    }
+
+    function setVisibilityModalData(targetId, visibility) {
+        const form = document.getElementById('visibilityToggleForm');
+        const actionUrl = `{% url 'categories:visibility' '000' %}`.replace('000', targetId);
+        form.action = actionUrl;
+    
+        // Add visibility as a hidden input in the form
+        let visibilityInput = form.querySelector('input[name="visibility"]');
+        console.log(visibilityInput)
+        if (!visibilityInput) {
+            visibilityInput = document.createElement('input');
+            visibilityInput.type = 'hidden';
+            visibilityInput.name = 'visibility';
+            form.appendChild(visibilityInput);
+        }
+        console.log(visibilityInput)
+        visibilityInput.value = visibility;
+    }
+    
+
+
+   document.addEventListener('DOMContentLoaded', function () {
+    const departmentSelect = document.getElementById('departments');
+    const editButton = document.getElementById('editDepartmentBtn');
+    const deleteBtn = document.getElementById('deleteDepartmentBtn');
+    const editDepartmentId = document.getElementById('editDepartmentId');
+    const editDepartmentName = document.getElementById('editDepartmentName');
+    const deleteForm = document.getElementById('deleteForm');
+    
+    // Enable or disable buttons based on selected departments
+    departmentSelect.addEventListener('change', function () {
+
+        const selectedOptions = departmentSelect.selectedOptions; // Get all selected options
+        
+        if (selectedOptions.length === 1) { 
+            const selectedOption = selectedOptions[0]; 
+
+            // Enable buttons
+            editButton.disabled = false;
+            deleteBtn.disabled = false;
+
+            editDepartmentId.value = selectedOption.value;
+            editDepartmentName.value = selectedOption.text;
+
+            const deleteUrl = `{% url 'departments:user.delete' '000' %}`.replace('000', selectedOption.value);
+            deleteForm.action = deleteUrl;
+
+        } else { 
+            // Disable buttons
+            editButton.disabled = true;
+            deleteBtn.disabled = true;
+        }
+    });
+});
+
+
+
+      document.addEventListener("DOMContentLoaded", function () {
+        const mainRadio = document.getElementById("main");
+        const subRadio = document.getElementById("sub");
+        const parentCategoryDiv = document.querySelector(".parent_category_div");
+        const parentLogoDiv = document.querySelector(".logo_div");
+      
+        // Event listener for "Main" radio button
+        mainRadio.addEventListener("change", function () {
+          if (mainRadio.checked) {
+            parentCategoryDiv.style.display = "none"; // Hide the dropdown
+            parentLogoDiv.style.display = "block"; // Hide the dropdown
+          }
+        });
+      
+        // Event listener for "Sub" radio button
+        subRadio.addEventListener("change", function () {
+          if (subRadio.checked) {
+            parentCategoryDiv.style.display = "block"; // Show the dropdown
+            parentLogoDiv.style.display = "none"; // Show the dropdown
+          }
+        });
+      });
+      
+    
+    </script>
+
+{% endblock content %}

@@ -1,0 +1,200 @@
+{% extends "base.html" %}
+{% load static allauth i18n %}
+{% block title %}
+    kquires | {% trans "Signup" %}
+{% endblock title %}
+{% load static %}
+{% block content %}
+<div
+  class="container-fluid bg-radial-gradient h-full d-flex justify-content-center align-items-center"
+  style="background: url('{% static "images/bg.svg" %}') no-repeat center center fixed; background-size: cover; width: 100%; min-height: 100vh;"
+>
+  <!-- Language Dropdown Form -->
+  <form action="{% url 'set_language' %}" method="post" id="language-form" style="position: absolute; top: 20px; left: 20px; z-index: 9999;" >
+    {% csrf_token %}
+    <input type="hidden" name="language" id="languageInput">
+    <div class="dropdown">
+      <button class="btn dropdown-toggle" type="button" id="languageDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+        {% if LANGUAGE_CODE == 'en' %}
+        <img style="width:30px" src="{% static 'images/eng-ar.png' %}" alt="{% trans 'English' %}">
+        {% else %}
+        <img style="width:30px" src="{% static 'images/eng-ar.png' %}" alt="{% trans 'Arabic' %}">
+        {% endif %}
+      </button>
+      <ul class="dropdown-menu" aria-labelledby="languageDropdown">
+        {% for lang_code, lang_name in LANGUAGES %}
+        <li>
+          <button class="dropdown-item" type="button" onclick="changeLanguage('{{ lang_code }}')">
+            <img src="{% static 'images/' %}{{ lang_code }}.svg" alt="{{ lang_name }}" width="20" class="me-2">
+            {{ lang_name }}
+          </button>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </form>
+
+  <div class="p-3 bg-white rounded shadow-lg" style="width:450px">
+    <div class="text-center mb-2">
+      <!-- Logo -->
+      <img src="{% static 'images/logo.svg' %}" alt="{% trans 'Logo' %}" class="mx-auto w-75 mt-0 mb-1" />
+      <h2 class="text-2xl font-semibold text-gray-700">{% trans "Sign Up" %}</h2>
+      <p class="text-gray-600">
+        {% trans "Already have an account?" %} <a href="{% url 'account_login' %}">{% trans "Sign in" %}</a>
+      </p>
+    </div>
+    <form method="post" action="{% url 'account_signup' %}">
+      {% csrf_token %}
+      {{ redirect_field }}
+
+      <!-- Non-field errors -->
+      {% if form.non_field_errors %}
+      <div class="alert alert-danger mt-3">
+        {{ form.non_field_errors }}
+      </div>
+      {% endif %}
+
+      <!-- Username Field -->
+      {% if form.username %}
+      <div class="form-group mt-4 mb-4">
+        <div class="position-relative">
+          <input type="hidden" name="is_active" value="0" />
+          <input
+            type="text"
+            name="username"
+            id="username"
+            placeholder="{% trans 'Enter Username' %}"
+            class="form-control block w-full p-2.5 rounded border border-gray-300 focus:ring focus:ring-blue-500 focus:outline-none pe-5"
+            required
+          />
+          <img
+            src="{% static 'images/usericon.svg' %}"
+            alt="{% trans 'Username Icon' %}"
+            style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%);"
+          />
+        </div>
+        {% if form.username.errors %}
+        <div class="text-red-500 text-sm mt-1">
+          {{ form.username.errors }}
+        </div>
+        {% endif %}
+      </div>
+      {% endif %}
+
+      <!-- Enter Employee ID -->
+      <div class="form-group mt-4 mb-4">
+        <div class="position-relative">
+          <input
+            type="text"
+            name="employee_id"
+            id="employee_id"
+            placeholder="{% trans 'Enter Employee ID' %}"
+            class="form-control block w-full p-2.5 rounded border border-gray-300 focus:ring focus:ring-blue-500 focus:outline-none pe-5"
+            required
+          />
+          <img
+            src="{% static 'images/usericon.svg' %}"
+            alt="{% trans 'Employee ID Icon' %}"
+            style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%);"
+          />
+        </div>
+        {% if form.email.errors %}
+        <div class="text-red-500 text-sm mt-1">
+          {{ form.email.errors }}
+        </div>
+        {% endif %}
+      </div>
+      <!--Email Field-->
+      <div class="form-group mt-4 mb-4">
+        <div class="position-relative">
+          <input
+            type="email"
+            name="email"
+            id="email"
+            placeholder="{% trans 'Enter Email' %}"
+            class="form-control block w-full p-2.5 rounded border border-gray-300 focus:ring focus:ring-blue-500 focus:outline-none pe-5"
+            required
+          />
+          <img
+            src="{% static 'images/usericon.svg' %}"
+            alt="{% trans 'Email Icon' %}"
+            style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%);"
+          />
+        </div>
+        {% if form.email.errors %}
+        <div class="text-red-500 text-sm mt-1">
+          {{ form.email.errors }}
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Password Field -->
+      <div class="form-group mt-2 relative">
+        <div class="form-group mt-4 mb-4 position-relative">
+          <input
+            type="password"
+            name="password1"
+            id="password1"
+            placeholder="{% trans 'Password' %}"
+            class="form-control block w-full p-2.5 rounded border border-gray-300 focus:ring focus:ring-blue-500 focus:outline-none pe-5"
+            required
+          />
+          <img
+            src="{% static 'images/passwordicon.svg' %}"
+            alt="{% trans 'Password Icon' %}"
+            style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%);"
+          />
+        </div>
+        {% if form.password1.errors %}
+        <div class="text-red-500 text-sm mt-1">
+          {{ form.password1.errors }}
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Confirm Password Field -->
+      <div class="form-group mt-4 mb-4">
+        <div class="position-relative">
+          <input
+            type="password"
+            name="password2"
+            id="password2"
+            placeholder="{% trans 'Confirm Password' %}"
+            class="form-control block w-full p-2.5 rounded border border-gray-300 focus:ring focus:ring-blue-500 focus:outline-none pe-5"
+            required
+          />
+          <img
+            src="{% static 'images/passwordicon.svg' %}"
+            alt="{% trans 'Password Icon' %}"
+            style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%);"
+          />
+        </div>
+        {% if form.password2.errors %}
+        <div class="text-red-500 text-sm mt-1">
+          {{ form.password2.errors }}
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Submit Button -->
+      <div class="mt-5 mb-0">
+        <button
+          type="submit"
+          class="btn btn-primary w-100 bg-blue-500 text-white py-2 rounded hover:bg-blue-600 focus:ring focus:ring-blue-300 focus:outline-none"
+        >
+          {% trans "Sign Up" %}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+ // Change language and save direction
+ function changeLanguage(langCode) {
+  document.getElementById('languageInput').value = langCode;
+  // Submit the form
+  document.getElementById('language-form').submit();
+}
+</script>
+{% endblock content %}

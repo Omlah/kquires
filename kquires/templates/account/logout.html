@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% load allauth i18n %}
+{% block title %}
+      kquires | SignOut
+    {% endblock title %}
+{% load static %}
+{% block content %}
+<div
+  class="container-fluid bg-radial-gradient h-full d-flex justify-content-center align-items-center " 
+  style="background: url('{% static "images/bg.svg" %}') no-repeat center center fixed; background-size: cover; height: 99vh; width: 100%"
+>
+<div class="d-flex justify-content-center align-items-center vh-100">
+    
+    <div class="p-3 bg-white text-center rounded shadow-lg " style="width:450px" >
+        <div class="text-center mb-2">
+            <!-- Logo -->
+            <img src="{% static 'images/logo.svg' %}" alt="Logo" class="mx-auto w-75  mt-0 mb-1" />
+            <h2 class="text-2xl font-semibold text-gray-700">{% trans 'Sign Out' %}</h2>
+          </div>
+        <p class="mb-4">{% trans 'Are you sure you want to sign out?' %}</p>
+        {% url 'account_logout' as action_url %}
+        <form method="post" action="{{ action_url }}" class="d-inline-block">
+            {% csrf_token %}
+            {{ redirect_field }}
+            <button type="button" class="btn btn-secondary" onclick="history.back();">
+                {% trans 'Go Back' %}
+            </button>
+            
+            <button type="submit" class="btn btn-danger">
+                {% trans 'Sign Out' %}
+            </button>
+        </form>
+    </div>
+</div>
+</div>
+{% endblock content %}

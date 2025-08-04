@@ -1,0 +1,173 @@
+{% load static %}
+{% load i18n %}
+<style>
+    .input-group {
+        display: flex;
+        align-items: center;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    [dir="ltr"] .input-group input {
+        border-left: 0;
+        border-right: 1px solid grey;
+        border-radius: 5px 0 0 5px;
+        flex: 1;
+        height: 60px;
+        font-size: 15px;
+    }
+
+    [dir="ltr"] .input-group button {
+        border-radius: 0 5px 5px 0;
+        background-color: #A94BEA;
+        color: white;
+        font-size: 20px;
+        height: 60px;
+        width: 120px;
+    }
+
+    [dir="rtl"] .input-group input {
+        border-right: 0;
+        border-left: 1px solid grey;
+        border-radius: 0 50px 50px 0;
+        flex: 1;
+        height: 60px;
+        font-size: 15px;
+    }
+
+    [dir="rtl"] .input-group button {
+        border-radius: 5px 0 0 5px;
+        background-color: #A94BEA;
+        color: white;
+        font-size: 20px;
+        height: 60px;
+        width: 120px;
+    }
+
+    /* Added dropdown styling to support scrolling when there are many results */
+    #search-results {
+        display: none;
+        position: absolute;
+        top: 100%;
+        max-height: 300px;
+        overflow-y: auto;
+    }
+</style>
+
+<div class="text-center mb-5 mt-2">
+    <h1 class="mb-2 text-center text-black" style="font-size:48px; font-weight:1000 !important">
+        {% trans "How can I help you?" %}
+    </h1>
+</div>
+
+<div class="text-center my-5">
+    <div class="input-group mt-3 position-relative" style="max-width: 600px; margin: 0 auto;">
+        <input
+            type="text"
+            id="search-input"
+            class="form-control"
+            placeholder="{% trans 'Search Articles' %}"
+            aria-label="{% trans 'Search' %}"
+            style="border: 2px solid grey; height: 60px; font-size: 15px; border-radius:0px !important">
+
+        <button
+            class="btn text-white"
+            type="button"
+            id="BTN"
+            style="background-color: #A94BEA;
+                   height: 60px;
+                   width: 120px;
+                   font-size: 20px;">
+            {% trans "Search" %}
+        </button>
+
+        <!-- Dropdown for search results -->
+        <div id="search-results" class="dropdown-menu w-100 position-absolute"></div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const searchInput = document.getElementById("search-input");
+        const searchButton = document.getElementById("BTN");  // Search button
+        const searchResults = document.getElementById("search-results");
+
+        // Function to fetch search results
+        async function fetchResults(query) {
+            if (query.length < 2) {
+                searchResults.style.display = "none";
+                return;
+            }
+    console.log("Fetching results for:", query);
+            const response = await fetch(`/dashboard/search/?q=${query}`);
+            const data = await response.json();
+    console.log(data)
+
+            if (data.results.length > 0) {
+                searchResults.innerHTML = data.results
+                    .map(article => {
+                        const highlightedTitle = highlightMatch(article.title, query);
+                        const highlightedShortDesc = highlightMatch(article.short_description, query);
+
+                        return `
+                            <a href="javascript:void(0)" class="dropdown-item" data-id="${article.id}">
+                                <strong>${highlightedTitle}</strong>
+                                <small class="text-secondary">${highlightedShortDesc}</small>
+                            </a>`;
+                    })
+                    .join("");
+
+                searchResults.style.display = "block";
+            } else {
+                searchResults.style.display = "none";
+            }
+        }
+
+        // Function to highlight matched text
+        function highlightMatch(text, query) {
+            if (!text) return ""; // Handle empty descriptions
+            const regex = new RegExp(`(${query})`, "gi"); // Case-insensitive match
+            return text.replace(regex, `<span style=" font-weight: bold; color:red;">$1</span>`);
+        }
+
+        // Listen for input changes
+        searchInput.addEventListener("input", function () {
+            fetchResults(this.value);
+        });
+
+        // Handle click on a search result
+        searchResults.addEventListener("click", function (e) {
+          // Use event delegation to check if the clicked element matches the .dropdown-item class
+          if (e.target && e.target.closest("a.dropdown-item")) {
+              const articleId = e.target.closest("a.dropdown-item").dataset.id; // Get article ID from the data-id attribute
+              window.location.href = `/articles/${articleId}/`; // Redirect to the article page
+          }
+      });
+
+
+        // Hide results when clicking outside
+        document.addEventListener("click", function (e) {
+            if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
+                searchResults.style.display = "none";
+            }
+        });
+
+        // Handle Search Button Click
+        searchButton.addEventListener("click", function () {
+            const query = searchInput.value.trim();
+            console.log("Search button clicked with query:", query);
+            if (query.length > 0) {
+                window.location.href = `${window.location.origin}/dashboard/search-results/?q=${encodeURIComponent(query)}`;
+            }
+        });
+
+        // Handle Enter key press
+        searchInput.addEventListener("keypress", function (event) {
+            if (event.key === "Enter") {
+                event.preventDefault(); // Prevent form submission
+                searchButton.click(); // Trigger search button click
+            }
+        });
+    });
+
+</script>

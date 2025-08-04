@@ -1,0 +1,47 @@
+{% load static %}
+{% load i18n %}
+<style>
+    .footer {
+        background-color: #2e3336; /* Dark background color */
+        color: #fff; /* White text */
+        padding: 15px 50px; /* Increased left and right padding for more space */
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 14px; /* Font size for text */
+    }
+      
+      .footer-content {
+        display: flex;
+        align-items: center;
+        width: 100%;
+        justify-content: space-between;
+      }
+      
+      .footer-logo {
+        width: 120px; /* Adjust width of the logo */
+        margin: 0 10px; /* Space between logo and other elements */
+      }
+      
+      .footer-support {
+        color: #fff; /* White color for the support link */
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+      }
+      
+      .footer-support img {
+        margin-left: 5px; /* Space between text and icon */
+        width: 16px; /* Adjust icon size */
+      }
+      
+    </style>
+    <footer class="footer">
+      <div class="footer-content">
+        <span>{% trans "All Rights Reserved © KQuires 2024" %}</span>
+        <img src="{% static 'images/logo.svg' %}" alt="{% trans 'KQuires Logo' %}" class="footer-logo" />
+        <a href="{% url 'tickets:my_list' %}" class="footer-support">{% trans "Support" %} <img src="{% static 'images/supporticon.svg' %}" alt="{% trans 'Support Icon' %}" /></a>
+      </div>
+    </footer>
+  
+  

@@ -1,0 +1,507 @@
+{% load static %}
+{% load i18n %}
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<style>
+.notifications-dropdown {
+    max-height: 380px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    width: 100%;
+    min-width: 300px;
+    white-space: normal;
+    background-color: #f3f4f6;
+    border-radius: 15px;
+    box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.notifications-dropdown:active {
+   color:red;
+}
+.notifications-dropdown li {
+    word-wrap: break-word;
+    white-space: normal;
+    display: block;
+}
+.outline-icon .nav-item.dropdown .nav-link:focus,
+.outline-icon .nav-item.dropdown .nav-link:active{
+  outline: 1px solid black;
+  border-radius: 5px;
+}
+.clear-notifications-wrapper {
+    position: sticky;
+    bottom: 0;
+    background-color: #f8f9fa;
+    padding: 10px;
+    border-top: 1px solid #ddd;
+    text-align: center;
+}
+
+.clear-notifications {
+    cursor: pointer;
+    display: block;
+    font-weight: bold;
+}
+
+ </style>
+<div class="">
+  <nav class="navbar navbar-expand-md bg-white">
+    <div class="container-fluid">
+      <!-- Toggler for Mobile Screens -->
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <!-- Collapsible Content -->
+      <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <!-- Logo -->
+        <a href="{% url 'dashboard:index' %}">
+          <img src="{% static 'images/homelogo.svg' %}" alt="Home Logo" class="" style="width: 60px; height: auto;">
+        </a>
+
+        <!-- Navbar Items -->
+        <ul class="navbar-nav align-items-center flex-row ms-auto" id="navbar-icons">
+          <!-- Language Dropdown -->
+          <li class="nav-item">
+            <form action="{% url 'set_language' %}" method="post">
+              {% csrf_token %}
+              <input type="hidden" name="language" id="languageInput">
+              <div class="dropdown">
+                <button class="btn dropdown-toggle" type="button" id="languageDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                  {% if LANGUAGE_CODE == 'en' %}
+                  <img class="" style="width:30px" src="{% static 'images/eng-ar.png' %}" alt="English">
+                  {% else %}
+                  <img class="" style="width:30px" src="{% static 'images/eng-ar.png' %}" alt="Arabic">
+                  {% endif %}
+                </button>
+                <ul class="dropdown-menu" aria-labelledby="languageDropdown">
+                  {% for lang_code, lang_name in LANGUAGES %}
+                    <li>
+                      <button class="dropdown-item" type="button" onclick="changeLanguage('{{ lang_code }}')">
+                        <img src="{% static 'images/' %}{{ lang_code }}.svg" alt="{{ lang_name }}" width="20" class="me-2">
+
+
+                        {{ lang_name }}
+                      </button>
+                    </li>
+                  {% endfor %}
+                </ul>
+              </div>
+            </form>
+          </li>
+
+
+
+        <!-- Notification Dropdown -->
+        {% if request.user.is_admin %}
+         <div class="outline-icon">
+        <li class="nav-item dropdown">
+         <a class="nav-link dropdown-toggle" href="#" id="notificationDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+         <img src="{% static 'images/notification-4-purple.svg' %}" alt="Notifications" class="ms-1" style="width: 30px; height: 35px;">
+          <span id="notificationCount" class="badge bg-danger" style="position: absolute; top: 2px; right: 2px; display: none;">0</span>
+         </a>
+          <ul class="dropdown-menu dropdown-menu-end notifications-dropdown" aria-labelledby="notificationDropdown" id="notificationList">
+        <li class="dropdown-header"></li>
+        {% for notification in notifications %}
+        <li>
+          <a class="dropdown-item d-flex align-items-center" href="#">
+            <strong>{{ notification.user_name }}</strong>
+            <span class="text-muted" style="font-size: 0.8em;">({{ notification.created_at }})</span>
+            <br>
+            {{ notification.message }}
+          </a>
+        </li>
+      {% empty %}
+        <li><a class="dropdown-item text-muted">No new notifications</a></li>
+      {% endfor %}
+
+
+
+  </ul>
+</li>
+</div>
+{% endif %}
+
+
+ <!-- Profile Icon -->
+ <li class="nav-item">
+  <a href="{% url 'users:profile' %}">
+    <img src="{% static 'images/profile-icon.png' %}" alt="Profile" class="ms-3" style="width: 28px; height: 25px;">
+  </a>
+</li>
+{% if not request.user.is_employee %}
+<!-- Home Icon -->
+<li class="nav-item">
+  <a
+      {% if user.is_authenticated %}
+          {% if user.is_manager %}
+              href="{% url 'dashboard:statistics' %}"
+          {% else %}
+              href="{% url 'dashboard:home' %}"
+          {% endif %}
+      {% else %}
+          href="{% url 'dashboard:index' %}"
+      {% endif %}
+  >
+      <img src="{% static 'images/home-icon.svg' %}" alt="Home" class="ms-3" style="width: 25px; height: 25px;">
+  </a>
+</li>
+{% endif %}
+<!-- Logout Icon -->
+<li class="nav-item">
+  <a href="{% if user.is_authenticated %}{% url 'account_logout' %}{% else %}{% url 'account_login' %}{% endif %}">
+    <img src="{% static 'images/power-off-purple.svg' %}" alt="{% if user.is_authenticated %}Logout{% else %}Login{% endif %}" class="ms-3" style="width: 30px; height: 30px;">
+  </a>
+</li>
+
+
+
+
+        </ul>
+      </div>
+    </div>
+  </nav>
+</div>
+<!-- <script>
+  // Function to set a cookie
+  function setCookie(name, value, days) {
+    const date = new Date();
+    date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+    const expires = "expires=" + date.toUTCString();
+    document.cookie = name + "=" + value + ";" + expires + ";path=/";
+  }
+
+  // Function to get a cookie
+  function getCookie(name) {
+    const decodedCookie = decodeURIComponent(document.cookie);
+    const cookies = decodedCookie.split(';');
+    for (let i = 0; i < cookies.length; i++) {
+      let cookie = cookies[i].trim();
+      if (cookie.indexOf(name + "=") === 0) {
+        return cookie.substring(name.length + 1);
+      }
+    }
+    return "";
+  }
+
+  // Change language and save direction
+  function changeLanguage(langCode) {
+
+
+    document.getElementById('languageInput').value = langCode;
+
+    // Set language in a cookie
+    setCookie('language', langCode, 7); // Store for 7 days
+    const body = document.body;
+
+    // Submit the form
+    document.querySelector('form').submit();
+  }
+
+  function fetchNotifications() {
+    fetch("{% url 'notifications:get_notifications' %}")
+   .then(response => response.json())
+   .then(data => {
+    console.log(data)
+       let dropdown = document.getElementById("notificationList");
+       let notificationCount = document.getElementById("notificationCount");
+       dropdown.innerHTML = "";
+
+       let unreadCount = 0;
+
+       if (data.notifications.length > 0) {
+           data.notifications.forEach(notification => {
+
+               let item = document.createElement("li");
+               item.classList.add("dropdown-item", "d-flex", "flex-column", "p-3");
+
+               item.innerHTML = `
+                   <div class="d-flex align-items-start justify-content-start" >
+                    <div class="status-icon me-2">
+                     <img src="{% static 'images/userfilled_modified.svg' %}" alt="User Icon" style="width: 25px; height: 25px;">
+                    </div>
+                    <div class="d-flex justify-content-between w-100">
+                     <strong class="user-name">${notification.user_name}</strong>
+                     <span class="created-at text-muted" style="font-size: 0.85em;">${notification.created_at}</span>
+                    </div>
+                   </div>
+
+                    <div class="message mt-2">
+                        ${notification.message}
+                    </div>
+
+
+
+                    <div class="border-bottom mt-3" style="border-bottom: 1px solid #ddd;"></div>
+
+                    `;
+
+
+
+               dropdown.appendChild(item);
+
+               if (!notification.is_read) {
+                   unreadCount++;
+               }
+           });
+
+
+           if (unreadCount > 0) {
+               notificationCount.textContent = unreadCount;
+               notificationCount.style.display = "inline";
+           } else {
+               notificationCount.style.display = "none";
+           }
+
+           let clearButton = document.createElement("li");
+                clearButton.innerHTML = `<a class="dropdown-item text-center" style="border-bottom: 1px solid #ddd;" href="#" id="clearAllNotifications"><strong>Clear All Notifications</strong></a>`;
+                clearButton.innerHTML += `<a class="dropdown-item text-center" href="{% url 'notifications:view_all_notifications' %}" id=""><strong>View All Notifications</strong></a>`;
+                dropdown.appendChild(clearButton);
+
+                document.getElementById("clearAllNotifications").addEventListener("click", function () {
+                 fetch("{% url 'notifications:clear_all_notifications' %}", {
+                  method: "POST",
+                  headers: {
+                       "X-CSRFToken": "{{ csrf_token }}",
+                       "Content-Type": "application/json"
+                          }
+                  }).then(() => {
+                  fetchNotifications();
+                  document.getElementById("notificationCount").style.display = "none";
+    });
+});
+       } else {
+           let item = document.createElement("li");
+           item.innerHTML = `<a class="dropdown-item" href="#">No new notifications</a>`;
+           dropdown.appendChild(item);
+           notificationCount.style.display = "none";
+       }
+
+   });
+}
+
+
+  document.getElementById("notificationDropdown").addEventListener("click", function () {
+      fetch("{% url 'notifications:mark_notifications_as_read' %}", {
+          method: "POST",
+          headers: {
+              "X-CSRFToken": "{{ csrf_token }}",
+              "Content-Type": "application/json"
+          }
+      }).then(() => {
+          document.getElementById("notificationCount").style.display = "none";
+          fetchNotifications();
+      });
+  });
+
+
+  function adjustDropdownPosition() {
+    const dropdown = document.getElementById("notificationList");
+    const rect = dropdown.getBoundingClientRect();
+
+    if (document.documentElement.dir === "rtl") {
+        dropdown.style.left = "0";
+        dropdown.style.right = "auto";
+    } else {
+        dropdown.style.right = "0";
+        dropdown.style.left = "auto";
+    }
+
+
+    if (rect.left < 0) {
+        dropdown.style.left = "0";
+        dropdown.style.right = "auto";
+    } else if (rect.right > window.innerWidth) {
+        dropdown.style.right = "0";
+        dropdown.style.left = "auto";
+    }
+}
+
+function changeLanguage(langCode) {
+    document.getElementById('languageInput').value = langCode;
+    setCookie('language', langCode, 7);
+
+    if (langCode === 'ar') {
+        document.documentElement.setAttribute("dir", "rtl");
+        document.body.classList.add("rtl-mode");
+    } else {
+        document.documentElement.setAttribute("dir", "ltr");
+        document.body.classList.remove("rtl-mode");
+    }
+
+    adjustDropdownPosition(); // Adjust dropdown position after language change
+    document.querySelector('form').submit();
+}
+
+
+    document.getElementById("notificationDropdown").addEventListener("click", adjustDropdownPosition);
+    window.addEventListener("resize", adjustDropdownPosition);
+    fetchNotifications();
+
+  </script> -->
+
+  <script>
+    function getCookie(name) {
+        const decodedCookie = decodeURIComponent(document.cookie);
+        const cookies = decodedCookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+          let cookie = cookies[i].trim();
+          if (cookie.indexOf(name + "=") === 0) {
+            return cookie.substring(name.length + 1);
+          }
+        }
+        return "";
+      }
+
+      // Cookie functions
+      function setCookie(name, value, days) {
+        const date = new Date();
+        date.setTime(date.getTime() + days * 24 * 60 * 60 * 1000);
+        const expires = "expires=" + date.toUTCString();
+        document.cookie = name + "=" + value + ";" + expires + ";path=/";
+      }
+
+      
+    document.addEventListener("DOMContentLoaded", function () {
+      const notificationDropdown = document.getElementById("notificationDropdown");
+      const notificationList = document.getElementById("notificationList");
+      const notificationCount = document.getElementById("notificationCount");
+  
+      
+  
+      
+  
+      // Language Change
+      window.changeLanguage = function (langCode) {
+        document.getElementById('languageInput').value = langCode;
+        setCookie('language', langCode, 7);
+  
+        if (langCode === 'ar') {
+          document.documentElement.setAttribute("dir", "rtl");
+          document.body.classList.add("rtl-mode");
+        } else {
+          document.documentElement.setAttribute("dir", "ltr");
+          document.body.classList.remove("rtl-mode");
+        }
+  
+        document.querySelector('form').submit();
+      }
+  
+      // Adjust Dropdown Position
+      function adjustDropdownPosition() {
+        if (!notificationList) return;
+        const rect = notificationList.getBoundingClientRect();
+  
+        if (document.documentElement.dir === "rtl") {
+          notificationList.style.left = "0";
+          notificationList.style.right = "auto";
+        } else {
+          notificationList.style.right = "0";
+          notificationList.style.left = "auto";
+        }
+  
+        if (rect.left < 0) {
+          notificationList.style.left = "0";
+          notificationList.style.right = "auto";
+        } else if (rect.right > window.innerWidth) {
+          notificationList.style.right = "0";
+          notificationList.style.left = "auto";
+        }
+      }
+  
+      // Fetch Notifications
+      function fetchNotifications() {
+        fetch("{% url 'notifications:get_notifications' %}")
+          .then(response => response.json())
+          .then(data => {
+            if (!notificationList || !notificationCount) return;
+  
+            notificationList.innerHTML = "";
+            let unreadCount = 0;
+  
+            if (data.notifications.length > 0) {
+              data.notifications.forEach(notification => {
+                const item = document.createElement("li");
+                item.classList.add("dropdown-item", "d-flex", "flex-column", "p-3");
+                item.innerHTML = `
+                  <div class="d-flex align-items-start justify-content-start">
+                    <div class="status-icon me-2">
+                      <img src="{% static 'images/userfilled_modified.svg' %}" alt="User Icon" style="width: 25px; height: 25px;">
+                    </div>
+                    <div class="d-flex justify-content-between w-100">
+                      <strong class="user-name">${notification.user_name}</strong>
+                      <span class="created-at text-muted" style="font-size: 0.85em;">${notification.created_at}</span>
+                    </div>
+                  </div>
+                  <div class="message mt-2">${notification.message}</div>
+                  <div class="border-bottom mt-3" style="border-bottom: 1px solid #ddd;"></div>
+                `;
+                notificationList.appendChild(item);
+                if (!notification.is_read) unreadCount++;
+              });
+  
+              if (unreadCount > 0) {
+                notificationCount.textContent = unreadCount;
+                notificationCount.style.display = "inline";
+              } else {
+                notificationCount.style.display = "none";
+              }
+  
+              const clearButton = document.createElement("li");
+              clearButton.innerHTML = `
+                <a class="dropdown-item text-center" style="border-bottom: 1px solid #ddd;" href="#" id="clearAllNotifications"><strong>{% trans "Clear All Notifications" %}</strong></a>
+                <a class="dropdown-item text-center" href="{% url 'notifications:view_all_notifications' %}"><strong>{% trans "View All Notifications" %}</strong></a>
+              `;
+              notificationList.appendChild(clearButton);
+  
+              const clearAll = document.getElementById("clearAllNotifications");
+              if (clearAll) {
+                clearAll.addEventListener("click", function (e) {
+                  e.preventDefault();
+                  fetch("{% url 'notifications:clear_all_notifications' %}", {
+                    method: "POST",
+                    headers: {
+                      "X-CSRFToken": "{{ csrf_token }}",
+                      "Content-Type": "application/json"
+                    }
+                  }).then(() => {
+                    fetchNotifications();
+                    notificationCount.style.display = "none";
+                  });
+                });
+              }
+  
+            } else {
+              const item = document.createElement("li");
+              item.innerHTML = `<a class="dropdown-item" href="#">No new notifications</a>`;
+              notificationList.appendChild(item);
+              notificationCount.style.display = "none";
+            }
+          });
+      }
+  
+      // Set up event listeners if dropdown exists
+      if (notificationDropdown) {
+        notificationDropdown.addEventListener("click", function () {
+          fetch("{% url 'notifications:mark_notifications_as_read' %}", {
+            method: "POST",
+            headers: {
+              "X-CSRFToken": "{{ csrf_token }}",
+              "Content-Type": "application/json"
+            }
+          }).then(() => {
+            if (notificationCount) {
+              notificationCount.style.display = "none";
+            }
+            fetchNotifications();
+            adjustDropdownPosition();
+          });
+        });
+  
+        window.addEventListener("resize", adjustDropdownPosition);
+        fetchNotifications();
+      }
+    });
+  </script>
+  
+
