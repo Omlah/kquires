@@ -1,0 +1,392 @@
+{% extends "pages/layout/sidebar.html" %}
+{% load static %}
+{% load i18n %}
+{% block title %}
+      kquires | {% trans 'Home'%}
+    {% endblock title %}
+{% block content %}
+<style>
+  .card-title{
+    color: #A94BEA;
+  }
+</style>
+
+
+<!-- "New Article" and "New Category" buttons -->
+<div class="d-flex align-items-center bg-light p-2">
+    <!-- "New Article" button -->
+    <button type="button" class="btn btn-primary mx-2" data-bs-toggle="modal" data-bs-target="#newArticleModal">
+      + {% trans "New Article" %}
+    </button>
+
+    <!-- "New Category" button -->
+    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newCategoryModal">
+      + {% trans "New Category" %}
+    </button>
+  </div>
+
+
+<div class="container-fluid p-4">
+  <div class="row p-3 mb-2">
+    {% if request.user.is_admin or request.user.is_article_writer %}
+    <div class="col-md-3 mt-3">
+    <div class="card">
+        <div class="card-body row d-flex justify-content-between align-items-center">
+            <!-- Left: Text -->
+            <div class="col-md-9">
+                <p class="card-text">{% trans "Total Articles" %}</p>
+                <h5 class="card-title">{{total_articles}}</h5>
+
+            </div>
+
+            <!-- Right: Icon -->
+            <div class="col-md-3">
+                <img width="50" src="{% static 'images/total_article.svg' %}" alt="Icon" >
+            </div>
+        </div>
+    </div>
+    </div>
+    {% endif %}
+    {% if request.user.is_admin or request.user.is_article_writer or request.user.is_approval_manager %}
+    <div class="col-md-3 mt-3">
+    <div class="card">
+        <div class="card-body row d-flex justify-content-between align-items-center">
+            <!-- Left: Text -->
+            <div class="col-md-9">
+                <p class="card-text">{% trans "Pending Articles" %}</p>
+                <h5 class="card-title">{{pending_articles}}</h5>
+            </div>
+
+            <!-- Right: Icon -->
+            <div class="col-md-3">
+                <img width="50" src="{% static 'images/feedback_article.svg' %}" alt="Icon" >
+            </div>
+        </div>
+    </div>
+    </div>
+    {% endif %}
+    {% if request.user.is_admin or request.user.is_article_writer or request.user.is_approval_manager %}
+    <div class="col-md-3 mt-3">
+    <div class="card">
+        <div class="card-body row d-flex justify-content-between align-items-center">
+            <!-- Left: Text -->
+            <div class="col-md-9">
+                <p class="card-text">{% trans "Approved Articles" %}</p>
+                <h5 class="card-title">{{approved_articles}}</h5>
+            </div>
+
+            <!-- Right: Icon -->
+            <div class="col-md-3">
+                <img width="50" src="{% static 'images/published_article.svg' %}" alt="Icon" >
+            </div>
+        </div>
+    </div>
+    </div>
+    {% endif %}
+    {% if request.user.is_admin or request.user.is_article_writer %}
+    <div class="col-md-3 mt-3">
+    <div class="card">
+        <div class="card-body row d-flex justify-content-between align-items-center">
+            <!-- Left: Text -->
+            <div class="col-md-9">
+                <p class="card-text">{% trans "Rejected Articles" %}</p>
+                <h5 class="card-title">{{rejected_articles}}</h5>
+
+            </div>
+
+            <!-- Right: Icon -->
+            <div class="col-md-3">
+                <img width="50" src="{% static 'images/pending_review.svg' %}" alt="Icon" >
+            </div>
+        </div>
+    </div>
+    </div>
+    {% endif %}
+
+</div>
+</div>
+
+
+<!-- New Article Modal -->
+{% if request.user.is_admin or request.user.is_article_writer %}
+
+<div class="modal fade" id="newArticleModal" tabindex="-1" aria-labelledby="newArticleModalLabel" aria-hidden="true">
+  <!-- Be sure to include 'enctype="multipart/form-data"' if you're uploading files -->
+  <form method="POST" action="{% url 'articles:create' %}" enctype="multipart/form-data">
+    {% csrf_token %}
+    <!-- If editing an existing article, you can store its ID here -->
+    <input type="hidden" name="id" id="id">
+
+    <div class="modal-dialog modal-xl">
+      <div class="modal-content">
+
+        <!-- Modal Header -->
+        <div class="modal-header">
+          <h5 class="modal-title" id="newArticleModalLabel">{% trans "New Article" %}</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% trans 'Close' %}"></button>
+        </div>
+
+        <!-- Modal Body -->
+        <div class="modal-body">
+          <div class="row">
+
+              <div class="mb-3 col-md-6">
+                  <label for="title" class="form-label">{% trans "Title" %}</label>
+                  <input
+                    type="text"
+                    name="title"
+                    class="form-control"
+                    id="title"
+                    placeholder="{% trans 'Enter title' %}"
+                    required
+                  >
+                </div>
+
+                 <!-- Category -->
+          <div class="mb-3 col-md-6">
+            <label for="category" class="form-label">{% trans "Category" %}</label>
+            <select required class="form-select" name="category" id="category">
+                  <option selected hidden>{% trans "Select Category" %}</option>
+                      {% for category in categories %}
+                          <option value="{{ category.id }}">{{ category.name }}</option>
+                      {% endfor %}
+            </select>
+          </div>
+
+          <!-- Attachment -->
+          <div class="mb-3 col-md-6">
+            <label for="attachment" class="form-label">{% trans "Add Attachment" %}</label>
+            <input
+              type="file"
+              name="attachment"
+              class="form-control"
+              id="attachment"
+            >
+          </div>
+          <div class="mb-3 col-md-6">
+            <label for="short_description" class="form-label">{% trans "Short Description" %}</label>
+            <textarea
+              name="short_description"
+              class="form-control"
+              id="short_description"
+              rows="2"
+              placeholder="{% trans 'Enter a short description' %}"
+            ></textarea>
+          </div>
+
+          <div class="mb-3 col-md-12">
+            <label for="brief_description" class="form-label">{% trans "Brief Description" %}</label>
+            <textarea
+              name="brief_description"
+              class="form-control"
+              id="brief_description"
+              rows="3"
+              placeholder="{% trans 'Enter a brief description' %}"
+            ></textarea>
+            <div id="file-dropzone" class="file-dropzone">
+              <p>{% trans 'Drag and drop files here or click to upload. (Allowed file types: MP4, PDF, PNG, JPG, JPEG)' %}</p>
+              <input type="file" id="file_input" multiple name="file" accept="video/mp4,application/pdf,image/png,image/jpeg,image/jpg"/>
+          </div>
+
+
+          </div>
+
+
+          </div>
+        </div>
+         <!-- /.modal-body -->
+
+        <!-- Modal Footer -->
+         <div class="modal-footer">
+          <label for="imageUploadModal" class="btn btn-primary">
+            {% trans "Upload Slider Images" %}
+          </label>
+          <button type="submit" class="btn btn-primary">{% trans "Save" %}</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Close" %}</button>
+
+        </div>
+        <!-- Upload Images Button -->
+
+        <input type="file" id="imageUploadModal" name="images" multiple accept="image/*" style="display: none;" />
+
+        <!-- Bootstrap Slider for Images -->
+        <div id="carousel-container" class="carousel-container mt-3" >
+          <div id="carouselExampleModal" class="carousel slide">
+            <div class="carousel-inner" id="carouselInnerModal">
+              {% for image in article.images.all %}
+                  <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                      <img src="{{ image.image.url }}" class="d-block w-100" alt="Slide {{ forloop.counter }}">
+                  </div>
+              {% endfor %}
+          </div>
+
+            <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleModal" data-bs-slide="prev">
+
+              <span class="carousel-control-prev-icon bg-black rounded" aria-hidden="true" ></span>
+
+
+            </button>
+
+            <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleModal" data-bs-slide="next"  >
+              <span class="carousel-control-next-icon bg-black rounded" aria-hidden="true"></span>
+
+            </button>
+
+
+          </div>
+        </div>
+        <!-- Bootstrap Slider for Images -->
+      </div>
+    </div>
+  </form>
+</div>
+
+
+
+
+{% endif %}
+
+
+  {% include 'articles/partials/form.html' %}
+  {% include 'categories/partials/form.html' %}
+  
+
+  <script>
+    function fetchCategoryDetails(ticketId) {
+        fetch(`{% url 'categories:category_detail_api' '000' %}`.replace('000', ticketId))
+            .then(response => response.json())
+            .then(data => { 
+                // Populate modal fields with fetched data
+                document.getElementById('id').value = data.id;
+                document.getElementById('name').value = data.name;
+                document.getElementById('departments').value = data.departments;
+                const departmentSelect = document.getElementById('departments');
+
+                Array.from(departmentSelect.options).forEach(option => {
+                    option.selected = false; // Clear any previous selections
+                });
+                
+                // Ensure departments is an array and set the matching options as selected
+                if (Array.isArray(data.departments)) {
+                    data.departments.forEach(department => {
+                        const option = Array.from(departmentSelect.options).find(opt => opt.value === department.id.toString());
+                        if (option) {
+                            option.selected = true; // Mark the option as selected
+                        }
+                    });
+                }
+
+
+                if (data.type === 'Main') {
+                    document.getElementById('main').checked = true;
+                    document.querySelector('.parent_category_div').style.display = 'none';
+                    document.querySelector('.logo_div').style.display = 'block';
+                } else if (data.type === 'Sub') {
+                    document.getElementById('sub').checked = true;
+                    document.querySelector('.logo_div').style.display = 'none';
+                    document.querySelector('.parent_category_div').style.display = 'block';
+
+                    const parentCategorySelect = document.getElementById('parent_category');
+                    Array.from(parentCategorySelect.options).forEach(option => {
+                        option.selected = false; // Clear previous selection
+                    });
+
+                    if (data.parent_category) {
+                        const parentOption = Array.from(parentCategorySelect.options).find(opt => opt.value === data.parent_category.toString());
+                        if (parentOption) {
+                            parentOption.selected = true; // Mark the matching parent category as selected
+                        }
+                    }
+                }
+    
+                // Show the modal
+                var modal = new bootstrap.Modal(document.getElementById('newCategoryModal'));
+                modal.show();
+            })
+            .catch(error => console.error('Error fetching category details:', error));
+    }
+
+
+
+
+    function setDeleteFormAction(targetId) {
+        const deleteForm = document.getElementById('deleteForm');
+        const deleteUrl = `{% url 'categories:delete' '000' %}`.replace('000', targetId); // Update the path to match your URL configuration
+        deleteForm.action = deleteUrl;
+    }
+
+
+    function setStatusModalData(targetId, status) {
+        const form = document.getElementById('statusUpdateForm');
+        const actionUrl = `{% url 'categories:status' '000' %}`.replace('000', targetId);
+        form.action = actionUrl;
+    
+        // Add status as a hidden input in the form
+        let statusInput = form.querySelector('input[name="status"]');
+        if (!statusInput) {
+            statusInput = document.createElement('input');
+            statusInput.type = 'hidden';
+            statusInput.name = 'status';
+            form.appendChild(statusInput);
+        }
+        statusInput.value = status;
+    }
+
+    function setVisibilityModalData(targetId, visibility) {
+        const form = document.getElementById('visibilityToggleForm');
+        const actionUrl = `{% url 'categories:visibility' '000' %}`.replace('000', targetId);
+        form.action = actionUrl;
+    
+        // Add visibility as a hidden input in the form
+        let visibilityInput = form.querySelector('input[name="visibility"]');
+        console.log(visibilityInput)
+        if (!visibilityInput) {
+            visibilityInput = document.createElement('input');
+            visibilityInput.type = 'hidden';
+            visibilityInput.name = 'visibility';
+            form.appendChild(visibilityInput);
+        }
+        console.log(visibilityInput)
+        visibilityInput.value = visibility;
+    }
+    
+
+
+  
+
+
+
+
+      document.addEventListener("DOMContentLoaded", function () {
+        const mainRadio = document.getElementById("main");
+        const subRadio = document.getElementById("sub");
+        const parentCategoryDiv = document.querySelector(".parent_category_div");
+        const parentLogoDiv = document.querySelector(".logo_div");
+      
+        // Event listener for "Main" radio button
+        mainRadio.addEventListener("change", function () {
+          if (mainRadio.checked) {
+            parentCategoryDiv.style.display = "none"; // Hide the dropdown
+            parentLogoDiv.style.display = "block"; // Hide the dropdown
+          }
+        });
+      
+        // Event listener for "Sub" radio button
+        subRadio.addEventListener("change", function () {
+          if (subRadio.checked) {
+            parentCategoryDiv.style.display = "block"; // Show the dropdown
+            parentLogoDiv.style.display = "none"; // Show the dropdown
+          }
+        });
+      });
+      
+    
+    </script>
+
+
+{% endblock content %}
+
+
+
+
+

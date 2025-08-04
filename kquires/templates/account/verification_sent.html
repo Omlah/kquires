@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% load static %}
+{% load i18n %}
+{% load allauth %}
+{% block title %}
+      kquires | Verify
+    {% endblock title %}
+{% block content %}
+<div
+  class="container-fluid bg-radial-gradient h-full d-flex justify-content-center align-items-center"
+  style="background: url('{% static "images/bg.svg" %}') no-repeat center center fixed; background-size: cover; width: 100%; min-height: 100vh;"
+>
+    <div class="p-3 bg-white rounded shadow-lg text-center" style="width: 450px;">
+        <div class="mb-3">
+            <h1 class="text-2xl font-semibold text-gray-700">
+                {% trans "Verify Your Email Address" %}
+            </h1>
+        </div>
+        <p class="text-gray-600 mt-3">
+            {% trans 'We have sent an email to you for verification. Follow the link provided to finalize the signup process. If you do not see the verification email in your main inbox, check your spam folder. Please contact us if you do not receive the verification email within a few minutes' %}
+        </p>
+        <a href="/" class="btn btn-primary">{% trans "Go Back" %}</a>
+    </div>
+</div>
+{% endblock content %}

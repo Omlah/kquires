@@ -1,0 +1,380 @@
+<!-- Large modal to accommodate all fields -->
+<style>
+  .cke_notifications_area {
+    display: none !important;
+  }
+  .file-dropzone {
+    border: 2px dashed #ddd;
+    padding: 20px;
+    text-align: center;
+    cursor: pointer;
+    background-color: #f9f9f9;
+  }
+  .file-dropzone.dragover {
+    background-color: #e9ecef;
+    border-color: #007bff;
+  }
+
+  .carousel-container {
+    width: 100%;
+    max-width: 500px;
+    height: 300px;
+    margin: auto;
+    overflow: hidden;
+  }
+
+  .carousel-inner img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .custom-upload-btn {
+    width: 120px;
+    padding: 6px 12px;
+    font-size: 14px;
+    text-align: center;
+    display: inline-block;
+  }
+  #loader {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent black background */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+  }
+
+  .spinner-border {
+    width: 5rem; /* Larger spinner */
+    height: 5rem;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    z-index: 9999;
+  }
+</style>
+
+{% load i18n %}
+<div class="modal fade" id="newArticleModal" tabindex="-1" aria-labelledby="newArticleModalLabel" aria-hidden="true">
+  <!-- Be sure to include 'enctype="multipart/form-data"' if you're uploading files -->
+  <form method="POST" action="{% url 'articles:create' %}" enctype="multipart/form-data">
+    {% csrf_token %}
+    <!-- If editing an existing article, you can store its ID here -->
+    <input type="hidden" name="id" id="id" />
+
+    <div class="modal-dialog modal-xl">
+      <div class="modal-content">
+        <!-- Modal Header -->
+        <div class="modal-header">
+          <h5 class="modal-title" id="newArticleModalLabel">{% trans 'New Article' %}</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% trans 'Close' %}"></button>
+        </div>
+
+        <!-- Modal Body -->
+        <div class="modal-body">
+          <div class="row">
+            <div class="mb-3 col-md-6">
+              <label for="title" class="form-label">{% trans 'Title' %}</label>
+              <input type="text" name="title" class="form-control" id="title" placeholder="{% trans 'Enter title' %}" required />
+            </div>
+
+            <!-- Category -->
+            <div class="mb-3 col-md-6">
+              <label for="category" class="form-label">{% trans 'Category' %}</label>
+              <select required class="form-select" name="category" id="category">
+                <option selected hidden>
+                  {% trans 'Select Category' %}
+                </option>
+                {% for category in categories %}
+                  <option value="{{ category.id }}">{{ category.name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <!-- Attachment -->
+            <div class="mb-3 col-md-6">
+              <label for="attachment" class="form-label">{% trans 'Add Attachment' %}</label>
+              <input type="file" name="attachment" class="form-control" id="attachment" />
+            </div>
+            <div class="mb-3 col-md-6">
+              <label for="short_description" class="form-label">{% trans 'Short Description' %}</label>
+              <textarea name="short_description" class="form-control" id="short_description" rows="2" placeholder="{% trans 'Enter a short description' %}"></textarea>
+            </div>
+
+            <div class="mb-3 col-md-12">
+              <label for="brief_description" class="form-label">{% trans 'Brief Description' %}</label>
+              <textarea name="brief_description" class="form-control" id="brief_description" rows="3" placeholder="{% trans 'Enter a brief description' %}"></textarea>
+              <div id="file-dropzone" class="file-dropzone">
+                <p>{% trans 'Drag and drop files here or click to upload. (Allowed file types: MP4, PDF, PNG, JPG, JPEG)' %}</p>
+                <input type="file" id="file_input" multiple name="file" accept="video/mp4,application/pdf,image/png,image/jpeg,image/jpg" />
+                <div id="loader" style="display: none;">
+                  <div class="spinner-border text-primary" role="status" style="width: 5rem; height: 5rem;">
+                    <span class="visually-hidden">{% trans 'Loading...' %}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div> <!-- /.modal-body -->
+
+        <!-- Modal Footer -->
+        <div class="modal-footer">
+          <label for="imageUploadModal" class="btn btn-primary">{% trans 'Upload Slider Images' %}</label>
+          <button type="submit" class="btn btn-primary">{% trans 'Save' %}</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans 'Close' %}</button>
+        </div>
+        <!-- Upload Images Button -->
+
+        <input type="file" id="imageUploadModal" name="images" multiple accept="image/*" style="display: none;" />
+
+        <!-- Bootstrap Slider for Images -->
+        <div id="carousel-container" class="carousel-container mt-3">
+          <div id="carouselExampleModal" class="carousel slide">
+            <div class="carousel-inner" id="carouselInnerModal">
+              {% for image in article.images.all %}
+                <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                  <img src="{{ image.image.url }}" class="d-block w-100" alt="Slide {{ forloop.counter }}" />
+                </div>
+              {% endfor %}
+            </div>
+
+            <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleModal" data-bs-slide="prev"><span class="carousel-control-prev-icon bg-black rounded" aria-hidden="true"></span></button>
+
+            <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleModal" data-bs-slide="next"><span class="carousel-control-next-icon bg-black rounded" aria-hidden="true"></span></button>
+          </div>
+        </div>
+        <!-- Bootstrap Slider for Images -->
+      </div>
+    </div>
+  </form>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteConfirmationModal" tabindex="-1" aria-labelledby="deleteConfirmationModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form id="deleteForm" method="POST" action="">
+        {% csrf_token %}
+        <div class="modal-header">
+          <h5 class="modal-title" id="deleteConfirmationModalLabel">{% trans 'Confirm Delete' %}</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% trans 'Close' %}"></button>
+        </div>
+        <div class="modal-body">
+          {% trans 'Are you sure you want to delete this item? This action cannot be undone.' %}
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans 'Cancel' %}</button>
+          <button type="submit" class="btn btn-danger">{% trans 'Delete' %}</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Status Update Modal -->
+<div class="modal fade" id="statusUpdateModal" tabindex="-1" aria-labelledby="statusUpdateModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form id="statusUpdateForm" method="POST" action="">
+        {% csrf_token %}
+        <div class="modal-header">
+          <h5 class="modal-title" id="statusUpdateModalLabel">{% trans 'Update Status' %}</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% trans 'Close' %}"></button>
+        </div>
+        <div class="modal-body">
+          <p>
+            {% trans 'Are you sure you want to update the status of this article?' %}
+          </p>
+
+          <!-- Comment Field -->
+          <div class="mb-3">
+            <label for="comment" class="form-label">{% trans 'Comment' %}</label>
+            <textarea class="form-control" id="comment" name="comment" rows="3" placeholder="{% trans 'Enter your comment here' %}"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans 'Cancel' %}</button>
+          <button type="submit" class="btn btn-primary">{% trans 'Update' %}</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Show Comment Modal -->
+<div class="modal fade" id="showCommentModal" tabindex="-1" aria-labelledby="showCommentModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form id="statusUpdateForm" method="POST" action="">
+        {% csrf_token %}
+        <div class="modal-header">
+          <h5 class="modal-title" id="showCommentModalLabel">{% trans 'Status Comment' %}</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% trans 'Close' %}"></button>
+        </div>
+        <div class="modal-body">
+          <p id="comment-content"></p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans 'Close' %}</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!--  Visibility Toggle Modal
+<div class="modal fade" id="visibilityToggleModal" tabindex="-1" aria-labelledby="visibilityToggleModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form id="visibilityToggleForm" method="POST" action="">
+        {% csrf_token %}
+        <div class="modal-header">
+          <h5 class="modal-title" id="visibilityToggleModalLabel">{% trans "Toggle Visibility" %}</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% trans 'Close' %}"></button>
+        </div>
+        <div class="modal-body">
+          {% trans "Are you sure you want to update the visibility of this article?" %}
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
+          <button type="submit" class="btn btn-primary">{% trans "Confirm" %}</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>  -->
+
+<script src="https://cdn.ckeditor.com/4.21.0/full/ckeditor.js"></script>
+<script>
+  CKEDITOR.replace('brief_description', {
+    height: 200,
+
+    // Disable image drag and drop, file uploading, and other features
+    removePlugins: 'image,uploadimage,flash,forms,elementspath,resize',
+
+    // Disable the 'drag and drop' feature
+    disableObjectResizing: true, // Disable object resizing
+    disableNativeSpellChecker: false, // Enable spell checker if needed
+
+    toolbar: [
+      { name: 'clipboard', items: ['Cut', 'Copy', 'Paste', 'Undo', 'Redo'] },
+      { name: 'basicstyles', items: ['Bold', 'Italic', 'Underline', 'Strike', 'RemoveFormat'] },
+      { name: 'paragraph', items: ['NumberedList', 'BulletedList', '-', 'Blockquote'] },
+      { name: 'links', items: ['Link', 'Unlink'] },
+      {
+        name: 'insert',
+        items: ['Table', 'HorizontalRule', 'SpecialChar']
+      },
+      { name: 'styles', items: ['Styles', 'Format', 'Font', 'FontSize'] },
+      { name: 'colors', items: ['TextColor', 'BGColor'] },
+      { name: 'tools', items: ['Maximize'] }
+    ]
+  })
+
+  // ✅ Handle Slider Upload (Only for Images, Not PDFs or Videos)
+  document.getElementById('imageUploadModal').addEventListener('change', function (event) {
+    const files = event.target.files
+    const carouselInnerModal = document.getElementById('carouselInnerModal')
+    const uniqueId = 'carouselExampleModal' + new Date().getTime()
+    let firstImageAdded = false // Track first active image
+
+    if (files.length > 0) {
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i]
+
+        // ✅ Check if the uploaded file is an image
+        if (!file.type.startsWith('image/')) {
+          continue // Skip non-image files
+        }
+
+        const reader = new FileReader()
+
+        reader.onload = function (e) {
+          // ✅ Create new image element
+          const img = document.createElement('img')
+          img.src = e.target.result
+          img.classList.add('d-block', 'w-100')
+          img.alt = `Slide ${i + 1}`
+          img.style = 'max-height:200px'
+
+          // ✅ Create new carousel item
+          const carouselItem = document.createElement('div')
+          carouselItem.classList.add('carousel-item')
+
+          // ✅ Ensure first image is active
+          if (!firstImageAdded) {
+            carouselItem.classList.add('active')
+            firstImageAdded = true
+          }
+
+          carouselItem.appendChild(img)
+          carouselInnerModal.appendChild(carouselItem)
+        }
+
+        reader.readAsDataURL(file)
+      }
+
+      setTimeout(() => {
+        const carouselContainer = document.getElementById('carousel-container')
+        const clonedCarousel = carouselContainer.cloneNode(true)
+        clonedCarousel.id = uniqueId
+        const carouselHtml = clonedCarousel.outerHTML
+
+        let editorContent = CKEDITOR.instances.brief_description.getData()
+        let parser = new DOMParser()
+        let doc = parser.parseFromString(editorContent, 'text/html')
+        let ckEditorCarousel = doc.querySelector('.carousel-container')
+
+        if (ckEditorCarousel) {
+          // ✅ Append new images to existing CKEditor slider
+          let ckEditorCarouselInner = ckEditorCarousel.querySelector('.carousel-inner')
+          let newImages = document.querySelectorAll('#carouselInnerModal .carousel-item')
+
+          newImages.forEach((image, index) => {
+            let clone = image.cloneNode(true)
+            if (index === 0) clone.classList.add('active') // Ensure first image is active
+            ckEditorCarouselInner.appendChild(clone)
+          })
+
+          // ✅ Remove multiple active slides, keep only one active
+          let allSlides = ckEditorCarouselInner.querySelectorAll('.carousel-item')
+          allSlides.forEach((slide, index) => {
+            slide.classList.remove('active')
+            if (index === 0) slide.classList.add('active') // Keep only the first slide active
+          })
+
+          // ✅ Update CKEditor content
+          CKEDITOR.instances.brief_description.setData(doc.body.innerHTML)
+        } else {
+          // ✅ If no existing carousel, insert a new one
+          let element = CKEDITOR.dom.element.createFromHtml(carouselHtml)
+          CKEDITOR.instances.brief_description.insertElement(element)
+        }
+
+        // ✅ Force Bootstrap to refresh the carousel
+        setTimeout(() => {
+          let carousel = document.querySelector(`#${uniqueId}`)
+          if (carousel) {
+            new bootstrap.Carousel(carousel, {
+              interval: false
+            })
+          }
+        }, 500)
+      }, 300)
+    } else {
+      alert('Please upload at least one image.')
+    }
+  })
+
+  document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.show-comment').forEach((link) => {
+      link.addEventListener('click', function () {
+        document.getElementById('comment-content').textContent = this.getAttribute('data-comment')
+      })
+    })
+  })
+</script>

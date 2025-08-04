@@ -1,0 +1,223 @@
+{% extends "pages/layout/sidebar.html" %}
+{% load static %}
+{% load i18n %}
+{% block title %}
+      kquires | {% trans 'Alert Messages List'%}
+{% endblock title %}
+{% block content %}
+<style>
+.form-section {
+    background-color: #fff;
+    padding: 20px;
+   
+    border-radius: 10px;
+  }
+  .profile-card {
+    text-align: center;
+    background-color: #fff;
+    padding: 20px;
+   
+    border-radius: 10px;
+  }
+  .profile-card img {
+    border-radius: 50%;
+    max-width: 150px;
+    margin-bottom: 10px;
+  }
+  .custom-table {
+   
+    border-radius: 8px;
+    overflow: hidden;
+}
+.custom-table thead {
+    background-color: #f1f5f9;
+}
+.custom-table tbody tr {
+    background-color: #ffffff;
+}
+.custom-table tbody tr:nth-child(even) {
+    background-color: #f8f9fa;
+}
+.new-ticket-btn {
+    margin-top: 10px;
+}
+.header-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: #f8f9fa; /* Background color */
+    padding: 10px;
+    /* Border for layout visibility */
+}
+
+.btn-new {
+    background-color: #007bff; /* Blue background */
+    color: white;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.btn-new:hover {
+    background-color: #0056b3; /* Darker blue on hover */
+}
+
+.search-bar input {
+    width: 300px;
+    padding: 8px;
+   
+    border-radius: 4px;
+}
+
+.btn-categories {
+    background-color: #f1f1f1;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+</style>
+<div class="d-flex align-items-center justify-content-between bg-light p-2">
+    <div class="text-center" style="font-size: 20px; color:black; font-weight: bold; cursor: pointer;">
+        {% trans "Notification Messages" %}
+    </div>
+    
+    
+   
+    <button type="button" class="btn btn-primary new-message-alert-btn" data-bs-toggle="modal" data-bs-target="#newMessageAlertModal">
+        + {% trans "New Message" %}
+    </button>
+   
+</div>
+
+<!-- Container to align table with the above div -->
+<div class="container-fluid mt-3">
+    <div class="form-section">
+      <form>
+          <div class="row">
+              <div class="custom-table">
+                  <table class="table text-center">
+                      <thead>
+                          <tr>
+                              <th scope="col">{% trans "Message" %}</th>
+                              <th scope="col">{% trans "Publication Date" %}</th>
+                              
+                              <th scope="col">{% trans "By" %}</th>
+                              <th scope="col">{% trans "Action" %}</th>
+                              
+                              <th scope="col">{% trans "Hide/Show" %}</th>
+                          </tr>
+                      </thead>
+                      <tbody>
+                        <!-- Example of dynamic rows -->
+                        {% for message_alert in message_alerts %}
+                          <tr>
+                              <td>{{message_alert.message}}</td>
+                              <td>{{message_alert.created_at}}</td>
+                            
+                              <td>{{message_alert.user.name|default:"User"}}</td>
+                              <td>
+                                <div class="d-flex align-items-center justify-content-center">
+                                    <a href="javascript:void(0);" class="btn btn-primary d-flex align-items-center me-2" onclick="fetchMessageAlertDetails({{ message_alert.id }})">
+                                        <img src="{% static 'images/edit.svg' %}" alt="{% trans 'Edit' %}" >
+                                        {% trans "Edit" %}
+                                    </a>
+                                    
+                                    <a href="javascript:void(0);" 
+                                        data-id="{{ message_alert.id }}" 
+                                        data-bs-toggle="modal" 
+                                        data-bs-target="#deleteConfirmationModal" 
+                                        class="text-primary d-flex align-items-center" 
+                                        onclick="setDeleteFormAction({{ message_alert.id }})">
+                                            <img src="{% static 'images/delete.svg' %}" alt="{% trans 'Delete' %}">
+                                        </a>
+                                </div>
+                            </td>
+                            <td>
+                                {% if message_alert.visibility %}
+                                <a href="javascript:void(0);" 
+                                    data-id="{{ message_alert.id }}" 
+                                    data-visibility="False" 
+                                    data-bs-toggle="modal" 
+                                    data-bs-target="#visibilityToggleModal" 
+                                    class="" 
+                                    onclick="setVisibilityModalData({{ message_alert.id }}, 'False')">
+                                    <img src="{% static 'images/show.svg' %}" alt="{% trans 'View Details' %}" class="ms-2" style="width: 20px; height: 20px;">
+                                </a>
+                                {% else %}
+                                <a href="javascript:void(0);" 
+                                    data-id="{{ message_alert.id }}" 
+                                    data-visibility="True" 
+                                    data-bs-toggle="modal" 
+                                    data-bs-target="#visibilityToggleModal" 
+                                    class="" 
+                                    onclick="setVisibilityModalData({{ message_alert.id }}, 'True')">
+                                    <img src="{% static 'images/hide.svg' %}" alt="{% trans 'View Details' %}" class="ms-2" style="width: 20px; height: 20px;">
+                                </a>
+                                {% endif %}
+                            </td>
+                          </tr>
+                        {% endfor %}
+                      </tbody>
+                  </table>
+              </div>
+          </div>
+      </form>
+    </div>
+</div>
+
+
+
+{% include 'message_alerts/partials/form.html' %}
+<script>
+  function fetchMessageAlertDetails(ticketId) {
+    fetch(`{% url 'message_alerts:message_alert_detail_api' '000' %}`.replace('000', ticketId))
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        // Populate modal fields with fetched data
+        document.getElementById('id').value = data.id;
+        document.getElementById('message').value = data.message;
+
+        // Show the modal
+        const modal = new bootstrap.Modal(document.getElementById('newMessageAlertModal'));
+        modal.show();
+    })
+    .catch(error => console.error('Error fetching ticket details:', error));
+
+}
+function setDeleteFormAction(targetId) {
+    const deleteForm = document.getElementById('deleteForm');
+    const deleteUrl = `{% url 'message_alerts:delete' '000' %}`.replace('000', targetId); // Update the path to match your URL configuration
+    deleteForm.action = deleteUrl;
+}
+
+
+function setVisibilityModalData(targetId, visibility) {
+    const form = document.getElementById('visibilityToggleForm');
+    const actionUrl = `{% url 'message_alerts:visibility' '000' %}`.replace('000', targetId);
+    form.action = actionUrl;
+
+    // Add visibility as a hidden input in the form
+    let visibilityInput = form.querySelector('input[name="visibility"]');
+    if (!visibilityInput) {
+        visibilityInput = document.createElement('input');
+        visibilityInput.type = 'hidden';
+        visibilityInput.name = 'visibility';
+        form.appendChild(visibilityInput);
+    }
+    visibilityInput.value = visibility;
+}
+
+</script>
+
+
+
+{% endblock content %}

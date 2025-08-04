@@ -1,0 +1,804 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-01-16 08:19+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 "
+"&& n%100<=10 ? 3 : n%100>=11 && n%100<=99 ? 4 : 5;\n"
+#: kquires/templates/account/logout.html:20
+msgid "Are you sure you want to sign out?"
+msgstr ""
+
+#: kquires/templates/account/logout.html:30
+msgid "Sign Out"
+msgstr "تسجيل الخروج"
+
+
+#: kquires/templates/account/verification_sent.html:16
+msgid "Verify Your Email Address"
+msgstr ""
+
+#: kquires/templates/account/verification_sent.html:20
+msgid ""
+"\n"
+"            We have sent an email to you for verification. Follow the link "
+"provided to finalize the signup process. If you do not see the verification "
+"email in your main inbox, check your spam folder. Please contact us if you "
+"do not receive the verification email within a few minutes.\n"
+"            "
+msgstr ""
+
+#: kquires/templates/allauth/layouts/entrance.html:8
+
+#: kquires/users/admin.py:24
+msgid "Personal info"
+msgstr ""
+
+#: kquires/users/admin.py:26
+msgid "Permissions"
+msgstr ""
+
+#: kquires/users/admin.py:38
+msgid "Important dates"
+msgstr ""
+
+#: kquires/users/forms.py:80 kquires/users/tests/test_forms.py:35
+msgid "This email has already been taken."
+msgstr ""
+
+#: kquires/users/models.py:19
+msgid "Name of User"
+msgstr ""
+
+#: kquires/users/models.py:20
+msgid "email address"
+msgstr ""
+
+#: kquires/users/tests/test_views.py:72 kquires/users/views.py:71
+msgid "Information successfully updated"
+msgstr ""
+
+msgid "Welcome"
+msgstr "مرحبًا"
+
+msgid "How can I help you?"
+msgstr "كيف يمكنني مساعدتك؟"
+
+msgid "Choose from the following options or search for your topic"
+msgstr "اختر من الخيارات التالية أو ابحث عن موضوعك"
+
+msgid "Search here..."
+msgstr "ابحث هنا..."
+
+msgid "Articles"
+msgstr "المقالات"
+
+msgid "Most Recent Articles"
+msgstr "أحدث المقالات"
+
+msgid "Most Visited Articles"
+msgstr "أكثر المقالات زيارة"
+
+msgid "Knowledge Base"
+msgstr "قاعدة المعرفة"
+
+msgid "Get familiar with manual help sections and explore their features"
+msgstr "تعرف على أقسام المساعدة اليدوية واستكشف ميزاتها"
+
+msgid "Home Page"
+msgstr "الصفحة الرئيسية"
+
+msgid "Statistics"
+msgstr "الإحصائيات"
+
+msgid "Notification Messages"
+msgstr "رسائل الإشعارات"
+
+msgid "Activity Log"
+msgstr "سجل الأنشطة"
+
+msgid "Users"
+msgstr "المستخدمون"
+
+msgid "Technical Support"
+msgstr "الدعم الفني"
+
+msgid "Toggle Menu"
+msgstr "تبديل القائمة"
+
+msgid "Categories"
+msgstr "الفئات"
+
+msgid "Search"
+msgstr "بحث"
+
+msgid "Search Icon"
+msgstr "رمز البحث"
+
+msgid "New Category"
+msgstr "فئة جديدة"
+
+msgid "Export Icon"
+msgstr "رمز التصدير"
+
+msgid "Name"
+msgstr "الاسم"
+
+msgid "Number of Articles"
+msgstr "عدد المقالات"
+
+msgid "Status"
+msgstr "الحالة"
+
+msgid "Actions"
+msgstr "الإجراءات"
+
+msgid "Approve/Reject"
+msgstr "الموافقة/الرفض"
+
+msgid "Hide/Show"
+msgstr "إخفاء/إظهار"
+
+msgid "pending"
+msgstr "قيد الانتظار"
+
+msgid "Edit"
+msgstr "تعديل"
+
+msgid "Delete"
+msgstr "حذف"
+
+msgid "Approve"
+msgstr "موافقة"
+
+msgid "Reject"
+msgstr "رفض"
+
+msgid "Show"
+msgstr "إظهار"
+
+msgid "Hide"
+msgstr "إخفاء"
+
+msgid "First"
+msgstr "الأول"
+
+msgid "Previous"
+msgstr "السابق"
+
+msgid "Next"
+msgstr "التالي"
+
+msgid "Last"
+msgstr "الأخير"
+
+msgid "Close"
+msgstr "إغلاق"
+
+msgid "Category Name"
+msgstr "اسم الفئة"
+
+msgid "Enter Category name"
+msgstr "أدخل اسم الفئة"
+
+msgid "Sub-Category"
+msgstr "تصنيف فرعي"
+
+msgid "Select Sub-Category"
+msgstr "اختر التصنيف الفرعي"
+
+msgid "Save"
+msgstr "حفظ"
+
+msgid "Confirm Delete"
+msgstr "تأكيد الحذف"
+
+msgid "Are you sure you want to delete this item? This action cannot be undone."
+msgstr "هل أنت متأكد أنك تريد حذف هذا العنصر؟ لا يمكن التراجع عن هذا الإجراء."
+
+msgid "Cancel"
+msgstr "إلغاء"
+
+msgid "Update Status"
+msgstr "تحديث الحالة"
+
+msgid "Are you sure you want to update the status of this category?"
+msgstr "هل أنت متأكد أنك تريد تحديث حالة هذه الفئة؟"
+
+msgid "Update"
+msgstr "تحديث"
+
+msgid "Toggle Visibility"
+msgstr "تبديل الرؤية"
+
+msgid "Are you sure you want to update the visibility of this category?"
+msgstr "هل أنت متأكد أنك تريد تحديث رؤية هذه الفئة؟"
+
+msgid "Confirm"
+msgstr "تأكيد"
+
+msgid "Articles Details:"
+msgstr "تفاصيل المقالات:"
+
+msgid "User Icon"
+msgstr "رمز المستخدم"
+
+msgid "Section Icon"
+msgstr "رمز القسم"
+
+msgid "Sections"
+msgstr "الأقسام"
+
+msgid "Calendar Icon"
+msgstr "رمز التقويم"
+
+msgid "Calendar"
+msgstr "التقويم"
+
+msgid "Clock Icon"
+msgstr "رمز الساعة"
+
+msgid "Time"
+msgstr "الوقت"
+
+msgid "Logo"
+msgstr "الشعار"
+
+msgid "On This Page"
+msgstr "في هذه الصفحة"
+
+msgid "Title"
+msgstr "العنوان"
+
+msgid "Publication Dates"
+msgstr "تواريخ النشر"
+
+msgid "By"
+msgstr "بواسطة"
+
+msgid "Action"
+msgstr "الإجراء"
+
+msgid "View Details"
+msgstr "عرض التفاصيل"
+
+msgid "New Ticket"
+msgstr "تذكرة جديدة"
+
+msgid "Message"
+msgstr "رسالة"
+
+msgid "Enter a Message"
+msgstr "أدخل رسالة"
+
+msgid "Are you sure you want to update the visibility of this message?"
+msgstr "هل أنت متأكد أنك تريد تحديث رؤية هذه الرسالة؟"
+
+msgid "All Rights Reserved © KQuires 2024"
+msgstr "جميع الحقوق محفوظة © KQuires 2024"
+
+msgid "KQuires Logo"
+msgstr "شعار KQuires"
+
+msgid "Support"
+msgstr "الدعم"
+
+msgid "Support Icon"
+msgstr "رمز الدعم"
+
+msgid "Tickets"
+msgstr "التذاكر"
+
+msgid "Ticket Number"
+msgstr "رقم التذكرة"
+
+
+msgid "Category"
+msgstr "الفئة"
+
+msgid "Preview"
+msgstr "معاينة"
+
+msgid "Date Added"
+msgstr "تاريخ الإضافة"
+
+msgid "Profile Image"
+msgstr "صورة الملف الشخصي"
+
+msgid "Main Info Icon"
+msgstr "أيقونة المعلومات الرئيسية"
+
+msgid "Main Information"
+msgstr "المعلومات الرئيسية"
+
+msgid "Change Password Icon"
+msgstr "أيقونة تغيير كلمة المرور"
+
+msgid "Change Password"
+msgstr "تغيير كلمة المرور"
+
+msgid "Email"
+msgstr "البريد الإلكتروني"
+
+msgid "Mobile Number"
+msgstr "رقم الهاتف المحمول"
+
+msgid "Department"
+msgstr "القسم"
+
+msgid "Job Title"
+msgstr "المسمى الوظيفي"
+
+msgid "New User"
+msgstr "مستخدم جديد"
+
+msgid "Enter user name"
+msgstr "أدخل اسم المستخدم"
+
+msgid "Enter email address"
+msgstr "أدخل عنوان البريد الإلكتروني"
+
+msgid "Password"
+msgstr "كلمة المرور"
+
+msgid "Enter Password"
+msgstr "أدخل كلمة المرور"
+
+msgid "Confirm Password"
+msgstr "تأكيد كلمة المرور"
+
+msgid "Phone Number"
+msgstr "رقم الهاتف"
+
+msgid "Enter phone number"
+msgstr "أدخل رقم الهاتف"
+
+msgid "Enter job title"
+msgstr "أدخل المسمى الوظيفي"
+
+
+msgid "Active"
+msgstr "نشط"
+
+msgid "In-active"
+msgstr "غير نشط"
+
+msgid "Registration Date"
+msgstr "تاريخ التسجيل"
+
+msgid "Role"
+msgstr "الدور"
+
+msgid "Admin"
+msgstr "مسؤول"
+
+msgid "Staff"
+msgstr "موظف"
+
+msgid "Email Enabled"
+msgstr "تمكين البريد الإلكتروني"
+
+
+msgid "Upload File"
+msgstr "رفع ملف"
+
+msgid "Choose a CSV or Excel File"
+msgstr "اختر ملف CSV أو Excel"
+
+msgid "Download Format"
+msgstr "تنزيل النموذج"
+
+msgid "Upload"
+msgstr "رفع"
+
+
+msgid "New Article"
+msgstr "مقال جديد"
+
+
+msgid "Enter title"
+msgstr "أدخل العنوان"
+
+msgid "Publication Date"
+msgstr "تاريخ النشر"
+
+msgid "Select Category"
+msgstr "اختر الفئة"
+
+msgid "Number"
+msgstr "الرقم"
+
+msgid "Employee Number"
+msgstr "رقم الموظف"
+
+msgid "Team"
+msgstr "الفريق"
+
+msgid "Permission"
+msgstr "الصلاحية"
+
+msgid "Enter department"
+msgstr "أدخل القسم"
+
+msgid "Activity Logs"
+msgstr "سجلات النشاط"
+
+
+
+msgid "Filter"
+msgstr "تصفية"
+
+
+msgid "Date/Time"
+msgstr "التاريخ/الوقت"
+
+msgid "Username"
+msgstr "اسم المستخدم"
+
+
+msgid "Action Description"
+msgstr "وصف الإجراء"
+
+msgid "Add Attachment"
+msgstr "إضافة مرفق"
+
+msgid "Short Description"
+msgstr "وصف مختصر"
+
+msgid "Enter a short description"
+msgstr "أدخل وصفًا مختصرًا"
+
+msgid "New Message"
+msgstr "رسالة جديدة"
+
+msgid "Articles List"
+msgstr "قائمة المقالات"
+
+msgid "Article"
+msgstr "مقالة"
+
+msgid "Categories List"
+msgstr "قائمة الفئات"
+
+msgid "Home"
+msgstr "الصفحة الرئيسية"
+
+msgid "Dashboard"
+msgstr "لوحة التحكم"
+
+msgid "Logs"
+msgstr "السجلات"
+
+msgid "Alert Messages List"
+msgstr "قائمة رسائل التنبيه"
+
+msgid "Tickets List"
+msgstr "قائمة التذاكر"
+
+msgid "My Tickets List"
+msgstr "قائمة التذاكر الخاصة بي"
+
+msgid "Users List"
+msgstr "قائمة المستخدمين"
+
+msgid "Password Reset"
+msgstr "إعادة تعيين كلمة المرور"
+
+msgid "Profile"
+msgstr "الملف الشخصي"
+
+msgid "Employee ID"
+msgstr "معرّف الموظف"
+
+msgid "Enter Employee ID"
+msgstr "أدخل معرّف الموظف"
+
+msgid "Main Category"
+msgstr "الفئة الرئيسية"
+
+msgid "Type"
+msgstr "النوع"
+
+msgid "Sub Category"
+msgstr "الفئة الفرعية"
+
+msgid "Category Type"
+msgstr "نوع الفئة"
+
+msgid "Main"
+msgstr "رئيسي"
+
+msgid "Sub"
+msgstr "فرعي"
+
+msgid "Add Department"
+msgstr "إضافة قسم"
+
+msgid "Edit Selected Department"
+msgstr "تعديل القسم المختار"
+
+msgid "Select Department"
+msgstr "اختر القسم"
+
+msgid "Department Name"
+msgstr "اسم القسم"
+
+msgid "Edit Department"
+msgstr "تعديل القسم"
+
+msgid "Brief Description"
+msgstr "وصف موجز"
+
+msgid "Enter mobile number"
+msgstr "أدخل رقم الجوال"
+
+msgid "User Management"
+msgstr "إدارة المستخدمين"
+
+
+msgid "Rejected Articles"
+msgstr "المقالات المرفوضة"
+
+msgid "Approved Articles"
+msgstr "المقالات الموافق عليها"
+
+msgid "Pending Articles"
+msgstr "المقالات المعلقة"
+
+msgid "Total Articles"
+msgstr "إجمالي المقالات"
+
+msgid "View All"
+msgstr "عرض الكل"
+
+msgid "Search Articles"
+msgstr "البحث في المقالات"
+
+msgid "Visibility"
+msgstr "الرؤية"
+
+msgid "Comment"
+msgstr "تعليق"
+
+msgid "Last 7 days"
+msgstr "آخر 7 أيام"
+
+msgid "No articles available."
+msgstr "لا توجد مقالات متاحة."
+
+msgid "Browse through articles based on categories and subcategories."
+msgstr "تصفح المقالات بناءً على الفئات والفئات الفرعية."
+
+
+msgid "Attachment"
+msgstr ""
+
+msgid "Status Comment"
+msgstr "تعليق الحالة"
+
+msgid "User"
+msgstr ""
+
+msgid "approved"
+msgstr "موافقة"
+
+msgid "rejected"
+msgstr "رفض"
+
+msgid "Manager"
+msgstr "مدير"
+
+msgid "Copy Link"
+msgstr "نسخ الرابط"
+
+msgid "Share Via Sms"
+msgstr "مشاركة عبر الرسائل النصية"
+
+msgid "View Article"
+msgstr "عرض المقال"
+
+msgid "Search Results for"
+msgstr "نتائج البحث عن"
+
+msgid "Your article"
+msgstr "مقالك"
+
+msgid "has been approved."
+msgstr "تمت الموافقة عليه."
+
+msgid "has been rejected."
+msgstr "تم رفضه."
+
+
+msgid "Login"
+msgstr "تسجيل الدخول"
+
+
+msgid "Did you forget your password?"
+msgstr "هل نسيت كلمة المرور؟"
+
+msgid "Show Password"
+msgstr "إظهار كلمة المرور"
+
+msgid "Sign Up"
+msgstr "إنشاء حساب"
+
+msgid "Enter Email"
+msgstr "أدخل البريد الإلكتروني"
+
+msgid "Already have an account?"
+msgstr "هل لديك حساب بالفعل؟"
+
+msgid "Sign in"
+msgstr "تسجيل الدخول"
+
+msgid "Search Users"
+msgstr "ابحث عن المستخدمين"
+
+msgid "Go Back"
+msgstr "العودة"
+
+
+
+msgid "Items per page"
+msgstr "العناصر في الصفحة"
+
+msgid "Search Categories"
+msgstr "فئات البحث"
+
+msgid "Category Logo"
+msgstr "شعار الفئة"
+
+msgid "Upload Slider Images"
+msgstr "تحميل صور السلايدر"
+
+
+msgid "Drag and drop files here or click to upload. (Allowed file types: MP4, PDF, PNG, JPG, JPEG)"
+msgstr "اسحب الملفات وأفلتها هنا أو انقر للتحميل. (أنواع الملفات المسموح بها: MP4، PDF، PNG، JPG، JPEG)"
+
+msgid "solved"
+msgstr "تم الحل"
+
+msgid "Are you sure you want to update the status of this Ticket?"
+msgstr "هل أنت متأكد أنك تريد تحديث حالة هذه التذكرة؟"
+
+msgid "Are you sure you want to update the status of this article?"
+msgstr "هل أنت متأكد أنك تريد تحديث حالة هذه المقالة؟"
+
+msgid "Enter your comment here"
+msgstr "أدخل تعليقك هنا"
+
+msgid "Enter ticket title"
+msgstr "أدخل عنوان التذكرة"
+
+msgid "Description"
+msgstr "الوصف"
+
+msgid "Enter ticket description"
+msgstr "أدخل وصف التذكرة"
+
+
+msgid "Inactive Users"
+msgstr "المستخدمون غير النشطين"
+
+msgid "Sub Categories"
+msgstr "الفئات الفرعية"
+
+
+msgid "The following users are inactive. Please activate them"
+msgstr "المستخدمون التاليون غير نشطين. يرجى تفعيلهم"
+
+msgid "Are you sure you want to delete this user?"
+msgstr "هل أنت متأكد أنك تريد حذف هذا المستخدم؟"
+
+msgid "Total Contributors"
+msgstr "إجمالي المساهمين"
+
+msgid "Total Users"
+msgstr "إجمالي المستخدمين"
+
+msgid "Most Shared Articles"
+msgstr "أكثر المقالات مشاركة"
+
+msgid "New Articles Added (Weekly/Monthly)"
+msgstr "المقالات الجديدة المضافة (أسبوعيًا/شهريًا)"
+
+msgid "Article Writer"
+msgstr "كاتب المقال"
+
+msgid "Employee"
+msgstr "موظف"
+
+msgid "Approval Manager"
+msgstr "مدير الموافقة"
+
+msgid "Save Changes"
+msgstr "حفظ التغييرات"
+
+msgid "Clear All Notifications"
+msgstr "مسح جميع الإشعارات"
+
+msgid "View All Notifications"
+msgstr "عرض جميع الإشعارات"
+
+msgid "Personal Information"
+msgstr "المعلومات الشخصية"
+
+msgid "Only the system administrator can update the basic information of users"
+msgstr "فقط مسؤول النظام يمكنه تحديث المعلومات الأساسية للمستخدمين"
+
+msgid "Full Name"
+msgstr "الاسم الكامل"
+
+msgid "Old Password"
+msgstr "كلمة المرور القديمة"
+
+
+msgid "Enter your old password"
+msgstr "أدخل كلمة المرور القديمة"
+
+msgid "Enter your new password"
+msgstr "أدخل كلمة المرور الجديدة"
+
+msgid "Confirm your new password"
+msgstr "أكد كلمة المرور الجديدة"
+
+
+msgid "Read"
+msgstr "قراءة"
+
+msgid "Date"
+msgstr "تاريخ"
+
+msgid "No notifications available."
+msgstr "لا توجد إشعارات متاحة."
+
+msgid "No related articles found"
+msgstr "لم يتم العثور على مقالات ذات صلة"
+
+msgid "Share By SMS"
+msgstr "المشاركة عبر الرسائل النصية"
+
+msgid "Related Articles"
+msgstr "مقالات ذات صلة"
+
+msgid "Send SMS"
+msgstr "إرسال رسالة نصية"
+
+msgid "Inactive"
+msgstr "غير نشط"
+
+msgid "employee"
+msgstr "موظف"
+
+msgid "manager"
+msgstr "مدير"
+
+msgid "staff"
+msgstr "الطاقم"
+
+msgid "approval_manager"
+msgstr "مدير الموافقة"
+
+msgid "admin"
+msgstr "مدير النظام"
+
+msgid "article_writer"
+msgstr "كاتب المقالات"
+
+msgid "We have sent an email to you for verification. Follow the link provided to finalize the signup process. If you do not see the verification email in your main inbox, check your spam folder. Please contact us if you do not receive the verification email within a few minutes"
+msgstr "لقد تم إرسال بريد إلكتروني إليك للتحقق. يرجى متابعة الرابط المرفق لإتمام عملية التسجيل. إذا لم تجد البريد الإلكتروني في صندوق الوارد الرئيسي، تحقق من مجلد البريد المزعج. يرجى الاتصال بنا إذا لم تستلم البريد الإلكتروني للتحقق خلال بضع دقائق"
+

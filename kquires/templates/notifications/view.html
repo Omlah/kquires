@@ -1,0 +1,53 @@
+{% extends "pages/layout/sidebar.html" %}
+{% load static %}
+{% load i18n %}
+{% block title %}
+    kquires | {% trans 'Notification List' %}
+{% endblock title %}
+
+{% block content %}
+<div class="container-fluid mt-3">
+  <div class="form-section">
+    <div id="notifications-table">
+      <div class="row">
+        <div class="col-md-12 mb-5">
+          <!-- Clear All Notifications Button -->
+          <a class="btn btn-danger btn-lg w-100 text-white text-center" href="#" id="clearAllNotifications">
+            <strong>{% trans "Clear All Notifications" %}</strong>
+          </a>
+        </div>
+        <div class="custom-table col-12">
+          <div class="table-responsive">
+            <table class="table table-sm text-center">
+                <thead>
+                    <tr>
+                        <th scope="col">{% trans "User" %}</th>
+                        <th scope="col">{% trans "Article" %}</th>
+                        <th scope="col">{% trans "Description" %}</th>
+                        <th scope="col">{% trans "Read" %}</th>
+                        <th scope="col">{% trans "Date" %}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                  {% for notification in notifications %}
+                    <tr>
+                        <td>{{ notification.user.name|default:"Unknown"}}</td>
+                        <td>{{ notification.article.title }}</td>
+                        <td>{{ notification.message }}</td>
+                        <td>{{ notification.is_read|yesno:"Read,Unread" }}</td>
+                        <td>{{ notification.created_at|date:"Y-m-d H:i" }}</td>
+                    </tr>
+                  {% empty %}
+                    <tr>
+                        <td colspan="5">{% trans "No notifications available." %}</td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+            </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock content %}

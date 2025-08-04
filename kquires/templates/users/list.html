@@ -1,0 +1,236 @@
+{% extends "pages/layout/sidebar.html" %}
+{% load static %}
+{% load i18n %}
+{% block title %}
+      kquires | {% trans 'Users List'%}
+    {% endblock title %}
+{% block content %}
+<style>
+.form-section {
+    background-color: #fff;
+    padding: 20px;
+
+    border-radius: 10px;
+  }
+  .profile-card {
+    text-align: center;
+    background-color: #fff;
+    padding: 20px;
+
+    border-radius: 10px;
+  }
+  .profile-card img {
+    border-radius: 50%;
+    max-width: 150px;
+    margin-bottom: 10px;
+  }
+  .custom-table {
+
+    border-radius: 8px;
+    overflow: hidden;
+}
+.custom-table thead {
+    background-color: #f1f5f9;
+}
+.custom-table tbody tr {
+    background-color: #ffffff;
+}
+.custom-table tbody tr:nth-child(even) {
+    background-color: #f8f9fa;
+}
+.new-ticket-btn {
+    margin-top: 10px;
+}
+.header-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: #f8f9fa; /* Background color */
+    padding: 10px;
+    /* Border for layout visibility */
+}
+
+.btn-new {
+    background-color: #007bff; /* Blue background */
+    color: white;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.btn-new:hover {
+    background-color: #0056b3; /* Darker blue on hover */
+}
+
+.search-bar input {
+    width: 300px;
+    padding: 8px;
+
+    border-radius: 4px;
+}
+
+.btn-categories {
+    background-color: #f1f1f1;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+</style>
+<div class="d-flex align-items-center justify-content-between bg-light p-2">
+    <div class="text-center" style="font-size: 20px; color:black; font-weight: bold; cursor: pointer;">
+        {% trans "Users" %}
+    </div>
+
+    <div class="search-bar mx-auto" style="width: 300px; position: relative;">
+        <form id="search-form" hx-get="{% url 'users:list' %}" hx-target="#users-table" hx-trigger="keyup changed delay:300ms">
+            <input
+                type="text"
+                id="category-search"
+                class="form-control form-control-sm"
+                placeholder="{% trans 'Search Users' %}"
+                name="q"
+                {% if LANGUAGE_CODE == 'ar' %}
+                    dir="rtl"
+                    style="padding-right: 10px; text-align: right;"
+                {% else %}
+                    dir="ltr"
+                    style="padding-left: 10px; text-align: left;"
+                {% endif %}
+            />
+        </form>
+    
+        {% if LANGUAGE_CODE == 'ar' %}
+            <!-- Icon on the left for Arabic (RTL) -->
+            <img src="{% static 'images/searchb.svg' %}" alt="{% trans 'Search Icon' %}"
+                 class="position-absolute top-50 start-0 translate-middle-y"
+                 style="width: 20px; height: 20px;">
+        {% else %}
+            <!-- Icon on the right for LTR -->
+            <img src="{% static 'images/searchb.svg' %}" alt="{% trans 'Search Icon' %}"
+                 class="position-absolute top-50 end-0 translate-middle-y"
+                 style="width: 20px; height: 20px;">
+        {% endif %}
+    </div>
+    
+    <button type="button" class="btn btn-primary new-user-btn mx-2" data-bs-toggle="modal" data-bs-target="#newUserModal">
+        + {% trans "New User" %}
+    </button>
+    <button
+    type="button"
+    class="ms-2 btn btn-primary new-article-btn mx-2"
+    data-bs-toggle="modal"
+    data-bs-target="#uploadFileModal"
+    >
+    <img src="{% static 'images/upload.svg' %}" alt="{% trans 'Section Icon' %}" class="ms-2">
+    {% trans "Upload File" %}
+    </button>
+    <a href="{% url 'users:export_csv' %}"><img src="{% static 'images/export.svg' %}" alt="{% trans 'Section Icon' %}" class="ms-2" ></a>
+</div>
+
+<!-- Container to align table with the above div -->
+<div class="container-fluid mt-3">
+    <div class="form-section">
+      <div id="users-table">
+        {% include 'users/partials/table.html' %}
+      </div>
+    </div>
+</div>
+
+{% include 'users/partials/form.html'  %}
+
+<script>
+
+    document.getElementById('newUserModal').addEventListener('hide.bs.modal', function () {
+        //document.getElementById('phone_number_div').style.display = 'block';
+        //document.getElementById('mobile_number_div').style.display = 'block';
+
+        document.getElementById('id').value = '';
+        document.getElementById('employee_id').value = '';
+        document.getElementById('name').value = '';
+        document.getElementById('email').value = '';
+        //document.getElementById('phone_number').value = '';
+        //document.getElementById('mobile_number').value = '';
+        document.getElementById('job_title').value = '';
+        document.getElementById('status').value = '';
+        document.getElementById('registration_date').value = new Date().toISOString().split("T")[0];
+        document.getElementById('department').value = '';
+        document.getElementById('role').value = '';
+        document.getElementById('password').addAttribute('required');
+    });
+
+    function fetchUserDetails(ticketId) {
+        fetch(`{% url 'users:user_detail_api' '000' %}`.replace('000', ticketId))
+            .then(response => response.json())
+            .then(data => {
+                // Populate modal fields with fetched data
+                document.getElementById('id').value = data.id;
+                document.getElementById('employee_id').value = data.employee_id;
+                document.getElementById('name').value = data.name;
+                document.getElementById('email').value = data.email;
+                //document.getElementById('phone_number').value = data.phone_number;
+                //document.getElementById('mobile_number').value = data.mobile_number;
+                document.getElementById('job_title').value = data.job_title;
+                document.getElementById('status').value = String(data.status) === 'True' ? 'True' : 'False';
+                document.getElementById('registration_date').value = data.registration_date;
+                document.getElementById('department').value = data.department;
+                document.getElementById('role').value = data.role;
+                document.getElementById('password').removeAttribute('required');
+                emailEnabledCheckbox = document.getElementById('email_enabled');
+
+                // Check if data.email_enabled is 'on'
+                if (data.email_enabled === 'on') {
+                    emailEnabledCheckbox.checked = true; // Check the checkbox
+                } else {
+                    emailEnabledCheckbox.checked = false; // Uncheck the checkbox
+                }
+
+                //document.getElementById('phone_number_div').style.display = 'none';
+                //document.getElementById('mobile_number_div').style.display = 'none';
+
+                // Show the modal
+                var modal = new bootstrap.Modal(document.getElementById('newUserModal'));
+                modal.show();
+            })
+            .catch(error => console.error('Error fetching article details:', error));
+    }
+
+
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const departmentSelect = document.getElementById('department');
+        const editButton = document.getElementById('editDepartmentBtn');
+        const editForm = document.getElementById('editDepartmentForm');
+        const editDepartmentId = document.getElementById('editDepartmentId');
+        const editDepartmentName = document.getElementById('editDepartmentName');
+        const deleteBtn=document.getElementById('deleteDepartmentBtn')
+
+        // Enable edit button only when a department is selected
+        departmentSelect.addEventListener('change', function () {
+            var selectedIndex = departmentSelect.selectedIndex
+            if (departmentSelect.value) {
+                editButton.disabled = false;
+                deleteBtn.disabled=false;
+            } else {
+                editButton.disabled = true;
+                deleteBtn.disabled=true;
+            }
+            const selectedOption = departmentSelect.options[selectedIndex];
+            editDepartmentId.value = selectedOption.value; // Set the department ID
+            editDepartmentName.value = selectedOption.text; // Set the department name
+
+            const deleteForm = document.getElementById('deleteForm');
+            const deleteUrl = `{% url 'departments:user.delete' '000' %}`.replace('000', selectedOption.value); // Update the path to match your URL configuration
+            deleteForm.action = deleteUrl;
+
+        });
+      });
+
+
+</script>
+
+
+{% endblock content %}
