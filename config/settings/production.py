@@ -20,10 +20,10 @@ from .base import env
 DEBUG = True
 SECRET_KEY = env("DJANGO_SECRET_KEY")
 # https://docs.djangoproject.com/en/dev/ref/settings/#allowed-hosts
-ALLOWED_HOSTS = env.list("DJANGO_ALLOWED_HOSTS", default=["kquires.techanzy.com"])
+ALLOWED_HOSTS = env.list("DJANGO_ALLOWED_HOSTS", default=["demo.kquires.com"])
 
 CSRF_TRUSTED_ORIGINS = [
-    'https://kquires.techanzy.com',
+    'https://demo.kquires.com',
 ]
 
 # DATABASES
@@ -188,7 +188,7 @@ sentry_sdk.init(
 # -------------------------------------------------------------------------------
 # Tools that generate code samples can use SERVERS to point to the correct domain
 SPECTACULAR_SETTINGS["SERVERS"] = [
-    {"url": "https://kquires.techanzy.com", "description": "Production server"},
+    {"url": "https://demo.kquires.com", "description": "Production server"},
 ]
 # Your stuff...
 # ------------------------------------------------------------------------------

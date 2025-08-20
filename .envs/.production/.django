@@ -2,7 +2,7 @@
 # ------------------------------------------------------------------------------
 # DJANGO_READ_DOT_ENV_FILE=True
 DJANGO_SETTINGS_MODULE=config.settings.production
-DJANGO_SECRET_KEY=4TERLtrHvtp08XNdkynkFVjunTKtBbpjepK9onMyjh6Waf9aXqvaymDvI0IL46Zl
+DJANGO_SECRET_KEY=!_ok6a4p+9^c$)qxo42hup)b%+x(qbfs5i3gl)__$2h@d@sxiz
 DJANGO_ADMIN_URL=EfXOooeTtWeXJvuYHallYfGAhFW6Feuq/
 
 # Security
@@ -42,5 +42,6 @@ REDIS_URL=redis://redis:6379/0
 CELERY_FLOWER_USER=debug
 CELERY_FLOWER_PASSWORD=debug
 
-DJANGO_ALLOWED_HOSTS=kquires.techanzy.com
+DJANGO_ALLOWED_HOSTS=demo.kquires.com
 
+DATABASE_URL=postgres://ammar:Ammar_007@localhost:5432/kquires

@@ -28,4 +28,4 @@ django-webpack-loader==3.1.1  # https://github.com/django-webpack/django-webpack
 openpyxl==3.1.5
 django-rosetta==0.10.1
 PyPDF2==3.0.1
-
+fido2<2.0.0
