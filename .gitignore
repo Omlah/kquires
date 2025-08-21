@@ -278,7 +278,21 @@ kquires/media/
 .ipython/
 kquires/static/webpack_bundles/
 webpack-stats.json
+# Environment files - NEVER commit these!
 .env
-.envs/*
-!.envs/.local/
-!.envs/.production/
+.env.*
+!.env.example
+.envs/
+.envs/.local/
+.envs/.production/
+.envs/.local/.django
+.envs/.local/.postgres
+.envs/.production/.django
+.envs/.production/.postgres
+
+# Additional environment file patterns
+*.env
+.env.local
+.env.production
+.env.development
+.env.test

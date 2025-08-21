@@ -2,6 +2,29 @@
 
 A comprehensive Django-based knowledge management system designed to organize, manage, and share information across organizations. Kquires provides a centralized platform for creating, categorizing, and accessing knowledge articles with advanced user management and departmental organization.
 
+## 📋 Table of Contents
+
+- [Features](#features)
+- [Tech Stack](#tech-stack)
+- [Prerequisites](#prerequisites)
+- [Quick Start](#quick-start)
+- [Configuration](#configuration)
+- [User Management](#user-management)
+- [Testing & Quality Assurance](#testing--quality-assurance)
+- [Background Tasks with Celery](#background-tasks-with-celery)
+- [Email Testing in Development](#email-testing-in-development)
+- [Error Monitoring with Sentry](#error-monitoring-with-sentry)
+- [Deployment](#deployment)
+- [Frontend Development & Theming](#frontend-development--theming)
+- [Core Applications](#core-applications)
+- [Internationalization](#internationalization)
+- [Contributing](#contributing)
+- [Documentation](#documentation)
+- [License](#license)
+- [Support](#support)
+- [Authors](#authors)
+- [Acknowledgments](#acknowledgments)
+
 [![Built with Cookiecutter Django](https://img.shields.io/badge/built%20with-Cookiecutter%20Django-ff69b4.svg?logo=cookiecutter)](https://github.com/cookiecutter/cookiecutter-django/)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 
@@ -42,6 +65,29 @@ A comprehensive Django-based knowledge management system designed to organize, m
 
 ## Quick Start
 
+### ⚠️ CRITICAL SECURITY WARNING!
+
+**NEVER COMMIT ANY `.env` FILES TO GIT!** This includes:
+- `.env` (root file)
+- `.envs/.local/.django`
+- `.envs/.local/.postgres`
+- `.envs/.production/.django`
+- `.envs/.production/.postgres`
+
+Before starting, ensure your sensitive information is properly configured:
+
+```bash
+# Copy environment templates (these are safe to commit)
+cp .envs/.local/.django.example .envs/.local/.django
+cp .envs/.local/.postgres.example .envs/.local/.postgres
+
+# Edit with your values (NEVER commit these files!)
+nano .envs/.local/.django
+nano .envs/.local/.postgres
+```
+
+**Only `.env.example` files should be in the repository!** See [Security](#security) section for details.
+
 ### Using Docker (Recommended)
 
 1. **Clone the repository**
@@ -79,7 +125,13 @@ A comprehensive Django-based knowledge management system designed to organize, m
 
 2. **Set environment variables**
    ```bash
-   cp .env.example .env
+   # Option 1: Use separate environment files (recommended)
+   cp .envs/.local/.django.example .envs/.local/.django
+   cp .envs/.local/.postgres.example .envs/.local/.postgres
+   # Edit the files with your configuration
+   
+   # Option 2: Use single environment file
+   cp env.example .env
    # Edit .env with your configuration
    ```
 
@@ -99,6 +151,18 @@ A comprehensive Django-based knowledge management system designed to organize, m
    ```
 
 ## Configuration
+
+### Environment Variables
+
+Kquires uses environment variables for configuration. **Never commit sensitive information to Git!**
+
+- **Local Development**: Use `.envs/.local/` directory
+- **Production**: Use `.envs/.production/` directory
+- **Single File**: Use `env.example` as template for `.env`
+
+See [SECURITY.md](SECURITY.md) for detailed security guidelines and environment setup instructions.
+
+### Configuration Files
 
 Detailed configuration settings can be found in the [Cookiecutter Django settings documentation](https://cookiecutter-django.readthedocs.io/en/latest/1-getting-started/settings.html).
 
@@ -206,8 +270,9 @@ For detailed Docker deployment instructions, see the [cookiecutter-django Docker
 
 1. **Configure environment variables**
    ```bash
-   cp .env.production.example .env.production
-   # Edit .env.production with your production settings
+   cp .envs/.production/.django.example .envs/.production/.django
+   cp .envs/.production/.postgres.example .envs/.production/.postgres
+   # Edit the files with your production settings
    ```
 
 2. **Deploy with Docker Compose**
