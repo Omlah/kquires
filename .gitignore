@@ -282,9 +282,6 @@ webpack-stats.json
 .env
 .env.*
 !.env.example
-.envs/
-.envs/.local/
-.envs/.production/
 .envs/.local/.django
 .envs/.local/.postgres
 .envs/.production/.django
