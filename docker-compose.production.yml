@@ -16,7 +16,7 @@ services:
 
     image: kquires_production_django
     volumes:
-      - /home/techanzy/work/production/media:/app/kquires/media
+      - production_django_media:/app/kquires/media
     depends_on:
       - postgres
       - redis
@@ -80,4 +80,4 @@ services:
     depends_on:
       - django
     volumes:
-      - /home/techanzy/work/production/media:/usr/share/nginx/media:ro
+      - production_django_media:/usr/share/nginx/media:ro

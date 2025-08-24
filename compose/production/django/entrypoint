@@ -14,4 +14,12 @@ wait-for-it "${POSTGRES_HOST}:${POSTGRES_PORT}" -t 30
 
 >&2 echo 'PostgreSQL is available'
 
+>&2 echo 'Ensuring media directories exist...'
+mkdir -p /app/kquires/media/category_logos
+mkdir -p /app/kquires/media/article_images
+mkdir -p /app/kquires/media/user_avatars
+
+>&2 echo 'Setting up media directory permissions...'
+chmod -R 755 /app/kquires/media
+
 exec "$@"
