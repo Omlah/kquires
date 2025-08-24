@@ -94,9 +94,13 @@ RUN chmod +x /start-flower
 # copy application code to WORKDIR
 COPY --from=client-builder --chown=django:django ${APP_HOME} ${APP_HOME}
 
-
-# make django owner of the WORKDIR directory as well.
 RUN chown -R django:django ${APP_HOME}
+RUN mkdir -p ${APP_HOME}/kquires/media/category_logos && \
+    chown -R django:django ${APP_HOME}/kquires/media
+RUN mkdir -p ${APP_HOME}/kquires/media/article_images && \
+    chown -R django:django ${APP_HOME}/kquires/media
+RUN mkdir -p ${APP_HOME}/kquires/media/user_avatars && \
+    chown -R django:django ${APP_HOME}/kquires/media
 
 USER django
 
