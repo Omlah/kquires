@@ -81,7 +81,7 @@
             <tbody>
               <!-- Example of dynamic rows -->
               {% for article in articles %}
-                <tr>
+                <tr onclick="handleRowClick(event, {{ article.id }})">
                     <td>{{article.title}}</td>
                     <td>{{article.created_at}}</td>
                     <td>{% trans article.status|default:"pending" %}</td>
@@ -106,25 +106,23 @@
                     <td>{{ article.user.name|default:_('User') }}</td>
                     <td>
                       <div class="d-flex align-items-center justify-content-center">
-                          <a href="javascript:void(0);" class="btn btn-primary d-flex align-items-center me-2" onclick="fetchArticleDetails({{ article.id }})">
+                          <a href="javascript:void(0);" class="btn btn-primary d-flex align-items-center me-2">
                               <img src="{% static 'images/edit.svg' %}" alt="{% trans 'Edit' %}" >
                               {% trans "Edit" %}
                           </a>
                           {% if request.user.is_admin %}
                           <a href="javascript:void(0);"
                               data-id="{{ article.id }}"
-
                               data-bs-toggle="modal"
                               data-bs-target="#deleteConfirmationModal"
                               class="text-primary d-flex align-items-center"
                               onclick="setDeleteFormAction({{ article.id }})">
                                   <img src="{% static 'images/delete.svg' %}" alt="{% trans 'Delete' %}">
                               </a>
-
                               {% endif %}
                       </div>
                   </td>
-                  <td>
+                  <td class="no-modal">
                       <div>
                         {% if article.status == 'approved' %}
                           <a href="javascript:void(0);"
@@ -175,7 +173,7 @@
                   </a>
                       {% endif %}
                   </td> -->
-                  <td>
+                  <td class="no-modal">
                     {% if article.attachment %}
                     <a href="{{ article.attachment.url }}" download>
                         <img src="{% static 'images/download.svg' %}" alt="{% trans 'download' %}" class="ms-2" style="width: 20px; height: 20px;">
@@ -251,5 +249,16 @@
       var limit = document.getElementById('limit-select').value;
       var currentUrl = window.location.href.split('?')[0]; // Get base URL
       window.location.href = currentUrl + '?page_size=' + limit; // Redirect with page_size query param
+  }
+
+  function handleRowClick(event, articleId) {
+      // Prevent modal from opening if clicking on Approve/Reject, Attachment, or Delete link
+      if (event.target.closest('.no-modal') || event.target.closest('[data-bs-target="#deleteConfirmationModal"]')) {
+          return;
+      }
+      // Stop event propagation to prevent multiple triggers
+      event.stopPropagation();
+      // Trigger the edit modal
+      fetchArticleDetails(articleId);
   }
 </script>
