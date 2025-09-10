@@ -332,5 +332,3 @@ class UserPasswordChangeForm(forms.Form):
         self.user.set_password(new_password)
         self.user.save()
         return self.user
-
-

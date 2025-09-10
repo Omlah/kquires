@@ -11,14 +11,12 @@
   .form-section {
     background-color: #fff;
     padding: 20px;
-   
     border-radius: 10px;
   }
   .profile-card {
     text-align: center;
     background-color: #fff;
     padding: 20px;
-   
     border-radius: 10px;
   }
   .profile-card img {
@@ -34,14 +32,14 @@
 <div class="container my-5">
   <div class="row">
     <!-- Profile Card Section -->
-
-
-     <div class="col-md-3">
+    <div class="col-md-3">
       <div class="profile-card text-center p-3 border rounded shadow-sm" style="background-color: #f9f9f9;">
         <!-- Profile Image -->
         <img
           src="{% static 'images/sheikh.svg' %}"
-          alt="{% trans 'Profile Image' %}" class="rounded-circle shadow" style="width: 150px; height: 150px; object-fit: cover;">
+          alt="{% trans 'Profile Image' %}"
+          class="rounded-circle shadow"
+          style="width: 150px; height: 150px; object-fit: cover;">
     
         <!-- List with Icons and Text -->
         <ul class="list-unstyled text-start">
@@ -56,7 +54,6 @@
                 />
                 <span>{% trans 'Main Information' %}</span>
             </a>
-
           </li>
           
           <!-- Change Password -->
@@ -70,9 +67,20 @@
                 />
                 <span>{% trans 'Change Password' %}</span>
             </a>
-            
           </li>
-    
+
+          <!-- Support -->
+          <li class="d-flex align-items-center justify-content-between py-2">
+            <a href="{% url 'tickets:my_list' %}" 
+              class="text-decoration-none d-flex align-items-center {% is_active 'tickets:my_list' as active %}{% if active %} text-a94bea {% else %} text-dark {% endif %}">
+                <img
+                    src="{% static 'images/customersupport.svg' %}"
+                    alt="{% trans 'Support Icon' %}"
+                    class="me-2 {% if active %} icon-a94bea {% endif %}"
+                />
+                <span>{% trans 'Support' %}</span>
+            </a>
+          </li>
         </ul>
       </div>
     </div>
@@ -85,97 +93,47 @@
           {% trans 'Only the system administrator can update the basic information of users' %}
         </p>
         <form>
-          <div class="row" >
+          <div class="row">
             <div class="mb-3 col-md-6">
-                <label for="name" class=" col-form-label form-label"
-                  >{% trans 'Full Name' %}</label
-                >
-              <div class="">
-                <input readonly disabled
-                  type="text"
-                  class="form-control"
-                  id="name"
-                  placeholder="{% trans '-' %}"
-                  name="name" 
-                  value="{{ user.name }}" 
-                />
+              <label for="name" class="col-form-label form-label">{% trans 'Full Name' %}</label>
+              <div>
+                <input readonly disabled type="text" class="form-control" id="name" placeholder="{% trans '-' %}" name="name" value="{{ user.name }}" />
               </div>
             </div>
             <div class="mb-3 col-md-6">
-                <label
-                  for="registrationDate"
-                  class=" col-form-label form-label"
-                  >{% trans 'Registration Date' %}</label
-                >
-              <div class="">
+              <label for="registrationDate" class="col-form-label form-label">{% trans 'Registration Date' %}</label>
+              <div>
                 <input readonly disabled type="text" class="form-control" id="registration_date" name="registration_date" value="{{ user.registration_date }}" />
               </div>
             </div>
             <div class="mb-3 col-md-6">
-                <label for="email" class=" col-form-label form-label"
-                  >{% trans 'Email' %}</label
-                >
-              <div class="">
-                <input readonly disabled
-                  type="email"
-                  class="form-control"
-                  id="email"
-                  placeholder="{% trans '-' %}"
-                  name="email" value="{{ user.email }}" 
-                />
+              <label for="email" class="col-form-label form-label">{% trans 'Email' %}</label>
+              <div>
+                <input readonly disabled type="email" class="form-control" id="email" placeholder="{% trans '-' %}" name="email" value="{{ user.email }}" />
               </div>
             </div>
             <div class="mb-3 col-md-6">
-                <label
-                  for="mobile_number"
-                  class=" col-form-label form-label"
-                  >{% trans 'Mobile Number' %}</label
-                >
-              <div class="">
-                <input readonly disabled
-                  type="text"
-                  class="form-control"
-                  id="mobile_number"
-                  placeholder="{% trans '-' %}"
-                  name="mobile_number" value="{{ user.mobile_number }}" 
-                />
+              <label for="mobile_number" class="col-form-label form-label">{% trans 'Mobile Number' %}</label>
+              <div>
+                <input readonly disabled type="text" class="form-control" id="mobile_number" placeholder="{% trans '-' %}" name="mobile_number" value="{{ user.mobile_number }}" />
               </div>
             </div>
             <div class="mb-3 col-md-6">
-                <label for="mobile_number" class=" col-form-label form-label"
-                  >{% trans 'Department' %}</label
-                >
-              <div class="">
-                <input readonly disabled
-                  type="text"
-                  class="form-control"
-                  id="mobile_number"
-                  placeholder="{% trans '-' %}"
-                  name="mobile_number" value="{{ user.mobile_number }}" 
-                />
+              <label for="department" class="col-form-label form-label">{% trans 'Department' %}</label>
+              <div>
+                <input readonly disabled type="text" class="form-control" id="department" placeholder="{% trans '-' %}" name="department" value="{{ user.department }}" />
               </div>
             </div>
             <div class="mb-3 col-md-6">
-                <label for="job_title" class=" col-form-label form-label"
-                  >{% trans 'Job Title' %}</label
-                >
-              <div class="">
-                <input readonly disabled
-                  type="text"
-                  class="form-control"
-                  id="job_title"
-                  placeholder="{% trans '-' %}"
-                  name="job_title" value="{{ user.job_title }}" 
-                />
+              <label for="job_title" class="col-form-label form-label">{% trans 'Job Title' %}</label>
+              <div>
+                <input readonly disabled type="text" class="form-control" id="job_title" placeholder="{% trans '-' %}" name="job_title" value="{{ user.job_title }}" />
               </div>
             </div>
           </div>
         </form>
       </div>
     </div>
-
   </div>
 </div>
-
-
 {% endblock content %}

@@ -93,3 +93,4 @@ class ArticleAutomaticTranslationTestCase(TestCase):
         # Check that the main article was created
         main_article = Article.objects.filter(title='Simple Test Article').first()
         self.assertIsNotNone(main_article)
+

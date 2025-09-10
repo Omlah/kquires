@@ -4,6 +4,7 @@ from ..users.models import User
 from datetime import datetime
 import json
 
+
 class Article(models.Model):
     STATUS_CHOICES = [
         ('pending', 'Pending'),
@@ -21,8 +22,23 @@ class Article(models.Model):
     title = models.CharField(blank=True, max_length=255, verbose_name='Title')
     attachment = models.FileField(upload_to='attachments/', verbose_name='Attachment', null=True, blank=True)
     category = models.ForeignKey(Category, on_delete=models.CASCADE, verbose_name='Category', related_name='articles')
-    subcategory = models.ForeignKey(Category, on_delete=models.SET_NULL, verbose_name='Subcategory', related_name='subcategory_articles', null=True, blank=True)
-    user = models.ForeignKey(User, on_delete=models.SET_NULL, verbose_name='User', related_name='articles', null=True, blank=True, default=None)
+    subcategory = models.ForeignKey(
+        Category, 
+        on_delete=models.SET_NULL, 
+        verbose_name='Subcategory', 
+        related_name='subcategory_articles', 
+        null=True, 
+        blank=True
+    )
+    user = models.ForeignKey(
+        User, 
+        on_delete=models.SET_NULL, 
+        verbose_name='User', 
+        related_name='articles', 
+        null=True, 
+        blank=True, 
+        default=None
+    )
     short_description = models.CharField(max_length=255, verbose_name='Short Description', null=True, blank=True)
     brief_description = models.TextField(verbose_name='Brief Description', null=True, blank=True)
     status = models.CharField(default='pending', choices=STATUS_CHOICES, max_length=255, verbose_name='Status')
@@ -41,8 +57,14 @@ class Article(models.Model):
     is_ai_generated = models.BooleanField(default=False, verbose_name='AI Generated')
     requires_approval = models.BooleanField(default=False, verbose_name='Requires Approval')
     translation_preview = models.TextField(null=True, blank=True, verbose_name='Translation Preview')
-    parent_article = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='translations', verbose_name='Parent Article')
-    subcategory = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True, related_name='subcategory_articles', verbose_name='Subcategory')
+    parent_article = models.ForeignKey(
+        'self', 
+        on_delete=models.CASCADE, 
+        null=True, 
+        blank=True, 
+        related_name='translations', 
+        verbose_name='Parent Article'
+    )
     
     # Translation Status
     TRANSLATION_STATUS_CHOICES = [
@@ -62,7 +84,7 @@ class Article(models.Model):
     # AI Translation field
     ai_translated = models.BooleanField(default=False, verbose_name='AI Translated')
     
-    # Additional fields that exist in the database
+    # Additional fields for Arabic translations
     title_ar = models.CharField(max_length=255, blank=True, null=True, verbose_name='Title (Arabic)')
     short_description_ar = models.CharField(max_length=255, blank=True, null=True, verbose_name='Short Description (Arabic)')
     brief_description_ar = models.TextField(blank=True, null=True, verbose_name='Brief Description (Arabic)')
@@ -79,20 +101,15 @@ class Article(models.Model):
         """Extract clean text from potentially JSON-formatted text"""
         if not text:
             return text
-        
-        # Check if it's a JSON string
         if isinstance(text, str) and text.strip().startswith('{') and text.strip().endswith('}'):
             try:
                 data = json.loads(text)
-                # If it's a translation response, extract the translated text
                 if isinstance(data, dict) and 'translated_text' in data:
                     return data['translated_text']
-                # If it's a translation response, extract the original text
                 elif isinstance(data, dict) and 'original_text' in data:
                     return data['original_text']
             except (json.JSONDecodeError, TypeError):
                 pass
-        
         return text
     
     def record_click(self):
@@ -120,65 +137,34 @@ class Article(models.Model):
         """Get title in the specified language"""
         if self.language == target_language:
             return self._extract_clean_text(self.title)
-        else:
-            # Find translation in target language
-            if self.parent_article:
-                translation = self.parent_article.translations.filter(language=target_language).first()
-            else:
-                translation = self.translations.filter(language=target_language).first()
-            if translation:
-                return self._extract_clean_text(translation.title)
-            else:
-                return self._extract_clean_text(self.title)
+        translation = self.parent_article.translations.filter(language=target_language).first() if self.parent_article else self.translations.filter(language=target_language).first()
+        return self._extract_clean_text(translation.title) if translation else self._extract_clean_text(self.title)
     
     def get_short_description_for_language(self, target_language):
         """Get short description in the specified language"""
         if self.language == target_language:
             return self._extract_clean_text(self.short_description)
-        else:
-            # Find translation in target language
-            if self.parent_article:
-                translation = self.parent_article.translations.filter(language=target_language).first()
-            else:
-                translation = self.translations.filter(language=target_language).first()
-            if translation:
-                return self._extract_clean_text(translation.short_description)
-            else:
-                return self._extract_clean_text(self.short_description)
+        translation = self.parent_article.translations.filter(language=target_language).first() if self.parent_article else self.translations.filter(language=target_language).first()
+        return self._extract_clean_text(translation.short_description) if translation else self._extract_clean_text(self.short_description)
     
     def get_brief_description_for_language(self, target_language):
         """Get brief description in the specified language"""
         if self.language == target_language:
             return self._extract_clean_text(self.brief_description)
-        else:
-            # Find translation in target language
-            if self.parent_article:
-                translation = self.parent_article.translations.filter(language=target_language).first()
-            else:
-                translation = self.translations.filter(language=target_language).first()
-            if translation:
-                return self._extract_clean_text(translation.brief_description)
-            else:
-                return self._extract_clean_text(self.brief_description)
+        translation = self.parent_article.translations.filter(language=target_language).first() if self.parent_article else self.translations.filter(language=target_language).first()
+        return self._extract_clean_text(translation.brief_description) if translation else self._extract_clean_text(self.brief_description)
     
     def has_translation(self, target_language):
         """Check if translation exists for the specified language"""
         if self.language == target_language:
             return True
-        else:
-            # Check if translation exists
-            if self.parent_article:
-                return self.parent_article.translations.filter(language=target_language).exists()
-            else:
-                return self.translations.filter(language=target_language).exists()
+        if self.parent_article:
+            return self.parent_article.translations.filter(language=target_language).exists()
+        return self.translations.filter(language=target_language).exists()
     
     def create_translation(self, target_language, translated_content, user=None):
         """Create a translation of this article"""
-        
-        # Get technical terms to preserve
         technical_terms = self.technical_terms or []
-        
-        # Create translation
         translation = Article.objects.create(
             title=f"{self.title} ({target_language.title()})",
             brief_description=translated_content,
@@ -199,42 +185,31 @@ class Article(models.Model):
     def validate_category_assignment(self):
         """Validate that article has exactly one main category and one subcategory"""
         errors = []
-        
-        # Check if category is assigned
         if not hasattr(self, 'category_id') or not self.category_id:
             errors.append("Article must have a main category")
         else:
-            # Only validate category type if category exists
             try:
                 if self.category.type != 'Main':
                     errors.append("Main category must be of type 'Main'")
             except:
-                pass  # Category doesn't exist, already handled above
-        
-        # Check if subcategory is assigned
+                pass
         if hasattr(self, 'subcategory_id') and self.subcategory_id:
             try:
                 if self.subcategory.type != 'Sub':
                     errors.append("Subcategory must be of type 'Sub'")
-                
-                # Check if subcategory belongs to main category
                 if hasattr(self, 'category_id') and self.category_id and self.subcategory.parent_category_id != self.category_id:
                     errors.append("Subcategory must belong to the selected main category")
             except:
-                pass  # Subcategory doesn't exist, skip validation
-        
+                pass
         return errors
     
     def save(self, *args, **kwargs):
         """Override save to validate category assignment"""
-        # Only validate category assignment if category is being set
-        # This allows articles to be created without categories initially
         if hasattr(self, 'category_id') and self.category_id:
             errors = self.validate_category_assignment()
             if errors:
                 raise ValueError(f"Category validation failed: {'; '.join(errors)}")
         super().save(*args, **kwargs)
-    
 
 
 class ArticleVersion(models.Model):
@@ -264,4 +239,3 @@ class ArticleImage(models.Model):
     
     def __str__(self):
         return f"Image for {self.article.title}"
-    
