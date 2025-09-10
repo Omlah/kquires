@@ -229,6 +229,19 @@
                 <span>{% trans "Articles" %}</span>
               </a>
             </li>
+            
+            
+            <!-- AI Chatbot -->
+            <!-- <li>
+              <a href="{% url 'chatbot:chat' %}" class="d-flex align-items-center text-decoration-none text-dark mx-2 my-1" style="transition: 0.3s; line-height: 1;">
+                <img
+                  src="{% static 'images/articlesbar.svg' %}"
+                  alt="{% trans 'AI Chatbot Icon' %}"
+                  style="width: 20px; height: 20px; " class="mx-2"
+                />
+                <span>{% trans "AI Assistant" %}</span>
+              </a>
+            </li> -->
 
 
 
@@ -276,17 +289,6 @@
                   style="width: 20px; height: 20px; " class="mx-2"
                 />
                 <span>{% trans "Users" %}</span>
-              </a>
-            </li>
-            <!-- Technical Support -->
-            <li>
-              <a href="{% url 'tickets:list' %}" class="d-flex align-items-center text-decoration-none text-dark mx-2 my-1" style="transition: 0.3s; line-height: 1;">
-                <img
-                  src="{% static 'images/technicalsupport.svg' %}"
-                  alt="{% trans 'Support Icon' %}"
-                  style="width: 20px; height: 20px; " class="mx-2"
-                />
-                <span>{% trans "Technical Support" %}</span>
               </a>
             </li>
             {% endif %}

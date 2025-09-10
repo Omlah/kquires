@@ -29,3 +29,6 @@ openpyxl==3.1.5
 django-rosetta==0.10.1
 PyPDF2==3.0.1
 fido2<2.0.0
+openai==1.51.0
+langdetect==1.0.9
+python-docx==1.2.0

@@ -3,6 +3,7 @@ from .views import upload_article
 from django.views.generic import TemplateView
 from .views import export_xls
 from .views import process_file,ArticlesOverviewView, ArticleListView, ArticleCreateOrUpdateView, ArticleDeleteView, ArticleStatusView, ArticleVisibilityView, ArticleIndexView, article_detail_api, export_csv
+from .api_views import translate_article_view, get_task_status
 
 app_name = "articles"
 urlpatterns = [
@@ -23,6 +24,10 @@ urlpatterns = [
 
     # Other URL patterns
     path('upload/', upload_article, name='upload_article'),  # Add by me
+    
+    # Translation API endpoints
+    path('api/translate/<int:article_id>/', translate_article_view, name='translate_article'),
+    path('api/task-status/<str:task_id>/', get_task_status, name='get_task_status'),
 ]
 
 

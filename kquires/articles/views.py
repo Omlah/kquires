@@ -47,6 +47,40 @@ class ArticleIndexView(LoginRequiredMixin, DetailView):
     model = Article
     template_name = 'articles/index.html'
     context_object_name = 'article'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        article = self.get_object()
+        
+        # Get current language from Django's i18n
+        from django.utils import translation
+        current_language = translation.get_language()
+        
+        # Map Django language codes to our model language codes
+        language_mapping = {
+            'en': 'english',
+            'ar': 'arabic'
+        }
+        current_lang = language_mapping.get(current_language, 'english')
+        
+        # Get language-aware content
+        context['article_title'] = article.get_title_for_language(current_lang)
+        context['article_short_description'] = article.get_short_description_for_language(current_lang)
+        context['article_brief_description'] = article.get_brief_description_for_language(current_lang)
+        
+        # Get translations
+        translations = article.get_translations()
+        context['translations'] = translations
+        
+        # Check if other language is available
+        other_lang = 'arabic' if current_lang == 'english' else 'english'
+        context['has_other_language'] = article.has_translation(other_lang)
+        context['other_language'] = other_lang
+        
+        # Record click
+        article.record_click()
+        
+        return context
 
     def get(self, request, *args, **kwargs):
         article = self.get_object()
@@ -88,11 +122,19 @@ class ArticleListView(LoginRequiredMixin, ListView):
         return super().dispatch(request, *args, **kwargs)
 
     def get_queryset(self):
-        query = Article.objects.order_by('-updated_at').all()
+        # Show ALL parent articles regardless of language
+        # The language-specific content will be handled in the template
+        query = Article.objects.filter(
+            Q(parent_article__isnull=True)  # Only show parent articles (not translations)
+        ).order_by('-updated_at')
+        
+        # Debug: Print query count
+        
         category_id = self.request.GET.get('category_id', None)
         sort_by = self.request.GET.get('sort_by',None)
         sort_type = self.request.GET.get('sort_type',None)
         q = self.request.GET.get("q", "").strip()
+        
         if category_id:
             query = query.filter(category_id= category_id )
         if q:
@@ -109,8 +151,6 @@ class ArticleListView(LoginRequiredMixin, ListView):
             f"status" if sort_type == 'asc' else f"-status"
         )
 
-
-
         return query
 
 
@@ -120,6 +160,20 @@ class ArticleListView(LoginRequiredMixin, ListView):
         ticket_id = self.request.GET.get('id')
         if ticket_id:
             context["ticket"] = get_object_or_404(Article, id=ticket_id)
+        
+        # Get current language from Django's i18n
+        from django.utils import translation
+        current_language = translation.get_language()
+        
+        # Map Django language codes to our model language codes
+        language_mapping = {
+            'en': 'english',
+            'ar': 'arabic'
+        }
+        current_lang = language_mapping.get(current_language, 'english')
+        context['current_language'] = current_lang
+        
+        # Debug: Print current language
         return context
 
     def render_to_response(self, context, **response_kwargs):
@@ -144,8 +198,36 @@ class ArticleCreateOrUpdateView(LoginRequiredMixin, CreateView):
 
     def post(self, request, *args, **kwargs):
         article_id = request.POST.get('id')
+        current_language = request.POST.get('current_language', 'english')
+        
         if article_id:
-            self.object = get_object_or_404(Article, id=article_id)  # ✅ Assign `self.object`
+            # Get the main article first
+            main_article = get_object_or_404(Article, id=article_id)
+            
+            # Determine which article to update based on current language
+            if current_language == 'english':
+                # Update the main article if it's in English, or find the English translation
+                if main_article.language == 'english':
+                    self.object = main_article
+                else:
+                    # Find English translation
+                    english_translation = main_article.translations.filter(language='english').first()
+                    if english_translation:
+                        self.object = english_translation
+                    else:
+                        self.object = main_article  # Fallback to main article
+            else:  # Arabic
+                # Update the Arabic translation if it exists, or the main article if it's in Arabic
+                if main_article.language == 'arabic':
+                    self.object = main_article
+                else:
+                    # Find Arabic translation
+                    arabic_translation = main_article.translations.filter(language='arabic').first()
+                    if arabic_translation:
+                        self.object = arabic_translation
+                    else:
+                        self.object = main_article  # Fallback to main article
+            
             form = self.form_class(request.POST, request.FILES, instance=self.object)
             action = "updated"
         else:
@@ -157,13 +239,87 @@ class ArticleCreateOrUpdateView(LoginRequiredMixin, CreateView):
             self.object = form.save(commit=False)  # ✅ Save object in `self.object`
             if not article_id:
                 self.object.user = request.user
+                
+                # Auto-detect language and create translation for new articles
+                self._create_automatic_translation(request)
+            
             self.object.save()
             user = User.objects.get(id=self.request.user.id)
             user.log(action, f"Article successfully {action}.")
-            messages.success(request, f"Article successfully {action}.")
+            
+            # Check if translation was prepared
+            if hasattr(self.object, '_translation_data'):
+                detected_lang = self.object._translation_data['detected_language']
+                target_lang = self.object._translation_data['target_language']
+                messages.success(request, f"✅ Article successfully {action}! AI automatically detected {detected_lang} and created both {detected_lang} and {target_lang} versions.")
+            else:
+                messages.success(request, f"Article successfully {action}.")
+            
             return self.form_valid(form)  # ✅ Call `form_valid()`
         else:
             return self.form_invalid(form)
+
+    def _create_automatic_translation(self, request):
+        """Create automatic translation for new articles"""
+        try:
+            from .ai_services import ai_service
+            
+            # Combine content for language detection
+            combined_content = f"{self.object.title} {self.object.short_description} {self.object.brief_description}".strip()
+            
+            # Auto-detect language from content
+            detected_language = 'english'  # Default
+            if combined_content:
+                try:
+                    detected_language = ai_service.detect_language(combined_content)
+                except Exception as e:
+                    # Fallback: simple heuristic
+                    if any('\u0600' <= char <= '\u06FF' for char in combined_content):
+                        detected_language = 'arabic'
+                    else:
+                        detected_language = 'english'
+            
+            # Set the detected language
+            self.object.language = detected_language
+            self.object.original_language = detected_language
+            
+            # Generate translation to the other language
+            target_language = 'arabic' if detected_language == 'english' else 'english'
+            
+            
+            # Translate all content
+            translated_title = self.object.title
+            translated_short_desc = self.object.short_description
+            translated_brief_desc = self.object.brief_description
+            
+            if self.object.title:
+                title_translation = ai_service.translate_content(self.object.title, detected_language, target_language)
+                if 'translated_text' in title_translation:
+                    translated_title = title_translation['translated_text']
+            
+            if self.object.short_description:
+                short_desc_translation = ai_service.translate_content(self.object.short_description, detected_language, target_language)
+                if 'translated_text' in short_desc_translation:
+                    translated_short_desc = short_desc_translation['translated_text']
+            
+            if self.object.brief_description:
+                brief_desc_translation = ai_service.translate_content(self.object.brief_description, detected_language, target_language)
+                if 'translated_text' in brief_desc_translation:
+                    translated_brief_desc = brief_desc_translation['translated_text']
+            
+            # Store translation data for later use (after main article is saved)
+            self.object._translation_data = {
+                'target_language': target_language,
+                'translated_title': translated_title,
+                'translated_short_desc': translated_short_desc,
+                'translated_brief_desc': translated_brief_desc,
+                'detected_language': detected_language
+            }
+            
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            # Continue with article creation even if translation fails
 
     def form_invalid(self, form):
         error_messages = []
@@ -180,13 +336,99 @@ class ArticleCreateOrUpdateView(LoginRequiredMixin, CreateView):
 
 def article_detail_api(request, id):
     article = Article.objects.get(id=id)
+    
+    # Get language parameter from request (default to current language)
+    target_language = request.GET.get('language', 'english')
+    
+    # Find the main article (parent) if this is a translation
+    main_article = article.parent_article if article.parent_article else article
+    
+    # Debug logging
+    print(f"🔍 article_detail_api called:")
+    print(f"  - Article ID: {id}")
+    print(f"  - Target language: {target_language}")
+    print(f"  - Article language: {article.language}")
+    print(f"  - Main article ID: {main_article.id}")
+    print(f"  - Main article language: {main_article.language}")
+    print(f"  - Available translations: {list(main_article.translations.values_list('id', 'language'))}")
+    
+    # Completely rewrite the language selection logic
+    print(f"🔍 Starting language selection for target: {target_language}")
+    
+    # First, let's find ALL articles related to this main article
+    all_related_articles = Article.objects.filter(
+        Q(id=main_article.id) | Q(parent_article=main_article)
+    ).order_by('id')
+    
+    print(f"📋 All related articles:")
+    for art in all_related_articles:
+        print(f"  - ID: {art.id}, Language: {art.language}, Parent: {art.parent_article_id}, Title: {art.title[:30]}...")
+    
+    # Now find the correct article for the target language
+    if target_language == 'english':
+        # Look for English article
+        english_article = all_related_articles.filter(language='english').first()
+        if english_article:
+            display_article = english_article
+            print(f"✅ Found English article: {english_article.id}")
+        else:
+            print(f"❌ No English article found!")
+            display_article = main_article
+    else:
+        # Look for Arabic article
+        arabic_article = all_related_articles.filter(language='arabic').first()
+        if arabic_article:
+            display_article = arabic_article
+            print(f"✅ Found Arabic article: {arabic_article.id}")
+        else:
+            print(f"❌ No Arabic article found!")
+            display_article = main_article
+    
+    # Debug logging for selected article
+    print(f"🎯 Selected display article:")
+    print(f"  - Display article ID: {display_article.id}")
+    print(f"  - Display article language: {display_article.language}")
+    print(f"  - Display article title: {display_article.title[:50]}...")
+    print(f"  - Display article title (raw): {repr(display_article.title[:100])}")
+    print(f"  - Display article short_desc (raw): {repr(display_article.short_description[:100])}")
+    
+    # Helper function to extract clean text from potentially JSON-formatted fields
+    def extract_clean_text(text):
+        if not text:
+            return text
+        
+        original_text = text
+        # Check if the text looks like a JSON string
+        if isinstance(text, str) and text.strip().startswith('{') and text.strip().endswith('}'):
+            try:
+                import json
+                data = json.loads(text)
+                # If it's a translation response, extract the translated text
+                if isinstance(data, dict) and 'translated_text' in data:
+                    result = data['translated_text']
+                    print(f"🔧 extract_clean_text: JSON -> translated_text: {repr(result[:50])}")
+                    return result
+                # If it's a translation response, extract the original text
+                elif isinstance(data, dict) and 'original_text' in data:
+                    result = data['original_text']
+                    print(f"🔧 extract_clean_text: JSON -> original_text: {repr(result[:50])}")
+                    return result
+            except (json.JSONDecodeError, TypeError):
+                pass
+        
+        print(f"🔧 extract_clean_text: No change needed: {repr(text[:50])}")
+        return text
+    
     return JsonResponse({
-        'id': article.id,
-        'title': article.title,
-        # 'attachment': article.attachment,
-        'category': article.category.name,
-        'short_description': article.short_description,
-        'brief_description': article.brief_description,
+        'id': display_article.id,  # Return the ID of the specific language version being displayed
+        'main_id': main_article.id,  # Also return main article ID for reference
+        'title': extract_clean_text(display_article.title),
+        'short_description': extract_clean_text(display_article.short_description),
+        'brief_description': extract_clean_text(display_article.brief_description),
+        'category': display_article.category.name if display_article.category else '',
+        'current_language': display_article.language,
+        'has_english': main_article.language == 'english' or main_article.translations.filter(language='english').exists(),
+        'has_arabic': main_article.language == 'arabic' or main_article.translations.filter(language='arabic').exists(),
     })
 
 
@@ -381,7 +623,7 @@ class ArticlesOverviewView(LoginRequiredMixin, ListView):
 
     def get_queryset(self):
         """Retrieve only approved and visible articles."""
-        query = Article.objects.filter( status='approved')
+        query = Article.objects.filter(status='approved')
         category_id = self.request.GET.get('category_id')
         sub_category_id = self.request.GET.get('sub_category_id')
         if category_id and not sub_category_id:
@@ -402,6 +644,19 @@ class ArticlesOverviewView(LoginRequiredMixin, ListView):
             context['category_id'] = int(category_id)
         if sub_category_id:
             context['sub_category_id'] = int(sub_category_id)
+        
+        # Get current language from Django's i18n
+        from django.utils import translation
+        current_language = translation.get_language()
+        
+        # Map Django language codes to our model language codes
+        language_mapping = {
+            'en': 'english',
+            'ar': 'arabic'
+        }
+        current_lang = language_mapping.get(current_language, 'english')
+        context['current_language'] = current_lang
+        
         return context
 
 
@@ -414,23 +669,109 @@ from .models import Article, ArticleImage
 
 def upload_article(request):
     if request.method == 'POST':
-        # Save the article
-        article = Article(
-            title=request.POST.get('title'),
-            short_description=request.POST.get('short_description'),
-            brief_description=request.POST.get('brief_description'),
-            user=request.user,  # Assuming the user is authenticated
-            category_id=request.POST.get('category'),  # Assuming category is passed as an ID
+        # Detect the language of the input content
+        from .ai_services import AIService
+        ai_service = AIService()
+        
+        title = request.POST.get('title', '')
+        short_description = request.POST.get('short_description', '')
+        brief_description = request.POST.get('brief_description', '')
+        
+        # Combine content for language detection
+        combined_content = f"{title} {short_description} {brief_description}".strip()
+        
+        # Auto-detect language from content
+        detected_language = 'english'  # Default
+        if combined_content:
+            try:
+                language_result = ai_service.detect_language(combined_content)
+                detected_language = language_result.get('language', 'english')
+            except Exception as e:
+                # Fallback: simple heuristic
+                if any('\u0600' <= char <= '\u06FF' for char in combined_content):
+                    detected_language = 'arabic'
+                else:
+                    detected_language = 'english'
+        
+        # Create the main article in the detected language
+        main_article = Article(
+            title=title,
+            short_description=short_description,
+            brief_description=brief_description,
+            user=request.user,
+            language=detected_language,
+            original_language=detected_language,
         )
-        article.save()
+        
+        # Only set category if provided
+        category_id = request.POST.get('category')
+        if category_id:
+            main_article.category_id = category_id
+        
+        main_article.save()
+        
+        # Generate translation to the other language
+        target_language = 'arabic' if detected_language == 'english' else 'english'
+        
+        try:
+            
+            # Translate all content
+            translated_title = title
+            translated_short_desc = short_description
+            translated_brief_desc = brief_description
+            
+            if title:
+                title_translation = ai_service.translate_content(title, detected_language, target_language)
+                if 'translated_text' in title_translation:
+                    translated_title = title_translation['translated_text']
+            
+            if short_description:
+                short_desc_translation = ai_service.translate_content(short_description, detected_language, target_language)
+                if 'translated_text' in short_desc_translation:
+                    translated_short_desc = short_desc_translation['translated_text']
+            
+            if brief_description:
+                brief_desc_translation = ai_service.translate_content(brief_description, detected_language, target_language)
+                if 'translated_text' in brief_desc_translation:
+                    translated_brief_desc = brief_desc_translation['translated_text']
+            
+            # Create the translated article as a separate record
+            translated_article = Article(
+                title=translated_title,
+                short_description=translated_short_desc,
+                brief_description=translated_brief_desc,
+                user=request.user,
+                language=target_language,
+                original_language=detected_language,
+                parent_article=main_article,
+                ai_translated=True,
+                translation_status='translated',
+                category=main_article.category,
+                subcategory=main_article.subcategory,
+                status=main_article.status,
+                visibility=main_article.visibility,
+            )
+            translated_article.save()
+            
+            
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            # Main article is still saved, just without translation
 
         # Save the uploaded images
         images = request.FILES.getlist('images')  # Get all uploaded images
         for image in images:
-            ArticleImage.objects.create(article=article, image=image)
+            ArticleImage.objects.create(article=main_article, image=image)
 
+        # Add success message about automatic translation
+        if 'translated_article' in locals():
+            messages.success(request, f'✅ Article created successfully! AI automatically detected {detected_language} and created both English and Arabic versions.')
+        else:
+            messages.success(request, f'✅ Article created successfully in {detected_language}! (Translation will be processed in background)')
+        
         # Render the form.html template with the article and its images
-        return render(request, 'form.html', {'article': article})
+        return render(request, 'form.html', {'article': main_article})
 
     # Render the form.html template for GET requests
     return render(request, 'form.html')

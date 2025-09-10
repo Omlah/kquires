@@ -137,15 +137,27 @@
       CKEDITOR.instances['brief_description'].setData('')
     })
 
-    function fetchArticleDetails(articleId) {
-      fetch(`{% url 'articles:article_detail_api' '000' %}`.replace('000', articleId))
+    window.currentArticleId = null; // Store current article ID for language switching
+    window.mainArticleId = null; // Store main article ID for language switching
+    window.currentLanguage = 'english'; // Store current language being edited
+
+    window.fetchArticleDetails = function(articleId, language = 'english') {
+      window.currentArticleId = articleId; // Store for language switching
+      window.currentLanguage = language; // Store current language
+      
+      fetch(`{% url 'articles:article_detail_api' '000' %}`.replace('000', articleId) + `?language=${language}`)
         .then((response) => response.json())
         .then((data) => {
-          console.log('Fetched Article Data:', data.brief_description)
+          console.log('Fetched Article Data:', data)
 
           document.getElementById('id').value = data.id
           document.getElementById('title').value = data.title
           document.getElementById('short_description').value = data.short_description
+          document.getElementById('current_language').value = data.current_language
+          
+          // Store both IDs for proper language switching
+          window.currentArticleId = data.id
+          window.mainArticleId = data.main_id
 
           // Ensure CKEditor is ready before inserting content
           if (CKEDITOR.instances.brief_description) {
@@ -174,11 +186,67 @@
             }
           }
 
+          // Show language switcher and update button states
+          const languageSwitcher = document.getElementById('languageSwitcher');
+          console.log('🔍 Language switcher element:', languageSwitcher);
+          console.log('🔍 Data received:', data);
+          
+          if (languageSwitcher) {
+            languageSwitcher.style.display = 'block';
+            console.log('✅ Language switcher shown');
+            
+            // Update dropdown button text based on current language
+            const languageDropdown = document.getElementById('languageDropdown');
+            if (languageDropdown) {
+              if (data.current_language === 'english') {
+                languageDropdown.innerHTML = '🇺🇸 English';
+              } else {
+                languageDropdown.innerHTML = '🇸🇦 العربية';
+              }
+            }
+            
+            // Update dropdown item states based on available languages
+            const viewEnglish = document.getElementById('viewEnglish');
+            const viewArabic = document.getElementById('viewArabic');
+            
+            console.log('🔍 English button:', viewEnglish);
+            console.log('🔍 Arabic button:', viewArabic);
+            console.log('🔍 Has English:', data.has_english);
+            console.log('🔍 Has Arabic:', data.has_arabic);
+            
+            if (viewEnglish && viewArabic) {
+              // Update dropdown items
+              if (!data.has_arabic) {
+                viewArabic.innerHTML = '🇸🇦 العربية +';
+                viewArabic.title = '{% trans "Create Arabic translation" %}';
+              } else {
+                viewArabic.innerHTML = '🇸🇦 العربية';
+                viewArabic.title = '{% trans "View in Arabic" %}';
+              }
+              
+              viewEnglish.innerHTML = '🇺🇸 English';
+              viewEnglish.title = '{% trans "View in English" %}';
+              
+              console.log('✅ Dropdown states updated');
+            } else {
+              console.log('❌ Dropdown items not found');
+            }
+          } else {
+            console.log('❌ Language switcher not found');
+          }
+
+          // Update modal title to indicate viewing mode
+          const modalTitle = document.getElementById('newArticleModalLabel');
+          if (modalTitle) {
+            modalTitle.innerHTML = `{% trans 'View Article' %} <small class="text-muted">(${data.current_language})</small>`;
+          }
+
           var modal = new bootstrap.Modal(document.getElementById('newArticleModal'))
           modal.show()
         })
         .catch((error) => console.error('Error fetching article details:', error))
     }
+
 
     function setDeleteFormAction(targetId) {
       const deleteForm = document.getElementById('deleteForm')

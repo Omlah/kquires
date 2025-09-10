@@ -34,6 +34,7 @@ urlpatterns = [
     path("logs/", include("kquires.logs.urls", namespace="logs")),
     path("departments/", include("kquires.departments.urls", namespace="departments")),
     path("notifications/", include("kquires.notifications.urls", namespace="notifications")),
+    path("chatbot/", include("kquires.chatbot.urls", namespace="chatbot")),
     
     # language urls
     path('i18n/', include('django.conf.urls.i18n')),

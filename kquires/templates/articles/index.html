@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load i18n %}
+{% load article_filters %}
 {% block title %}
       kquires | {% trans 'Article'%}
 {% endblock title %}
@@ -127,25 +128,57 @@ html {
     </ul> -->
 
     <div class="content-header bg-white p-3 rounded shadow-sm">
-        <div class="d-flex justify-content-start align-items-center text-muted">
-            <!-- First Item: Article Details -->
-            <div class="d-flex align-items-center me-4">
-                <span>{% trans "Articles Details:" %}</span>
-            </div>
+        <div class="d-flex justify-content-between align-items-center">
+            <div class="d-flex justify-content-start align-items-center text-muted">
+                <!-- First Item: Article Details -->
+                <div class="d-flex align-items-center me-4">
+                    <span>{% trans "Articles Details:" %}</span>
+                </div>
 
-            <!-- Second Item: Article Title -->
-            <div class="d-flex align-items-center me-4">
-                <img src="{% static 'images/userming.svg' %}" alt="{% trans 'User Icon' %}" class="ms-2"style="margin-right: 5px;" >
-                <!-- <span>{% trans "Users" %}</span> -->
-                <span>{{article.title}}</span>
-            </div>
+                <!-- Second Item: Article Title -->
+                <div class="d-flex align-items-center me-4">
+                    <img src="{% static 'images/userming.svg' %}" alt="{% trans 'User Icon' %}" class="ms-2"style="margin-right: 5px;" >
+                    <span id="article-title">{{article_title}}</span>
+                </div>
+                
+                <!-- Language Switcher -->
+                {% if has_other_language %}
+                <div class="d-flex align-items-center me-4">
+                    <div class="btn-group" role="group">
+                        <button type="button" class="btn btn-sm {% if current_language == 'english' %}btn-primary{% else %}btn-outline-primary{% endif %}" 
+                                onclick="switchLanguage('english')" id="lang-en-btn">
+                            🇺🇸 English
+                        </button>
+                        <button type="button" class="btn btn-sm {% if current_language == 'arabic' %}btn-primary{% else %}btn-outline-primary{% endif %}" 
+                                onclick="switchLanguage('arabic')" id="lang-ar-btn">
+                            🇸🇦 العربية
+                        </button>
+                    </div>
+                </div>
+                {% endif %}
 
-            <!-- Third Item: User -->
-            <div class="d-flex align-items-center me-4">
-                <img src="{% static 'images/userming.svg' %}" alt="{% trans 'User Icon' %}" class="ms-2"style="margin-right: 5px;" >
-                <!-- <span>{% trans "Users" %}</span> -->
-                <span>{{article.user.name}}</span>
+                <!-- Third Item: User -->
+                <div class="d-flex align-items-center me-4">
+                    <img src="{% static 'images/userming.svg' %}" alt="{% trans 'User Icon' %}" class="ms-2"style="margin-right: 5px;" >
+                    <span>{{article.user.name}}</span>
+                </div>
             </div>
+            
+            <!-- Language Switcher -->
+            <div class="d-flex align-items-center">
+                <span class="me-2">{% trans "Language:" %}</span>
+                <div class="btn-group" role="group">
+                    <button type="button" class="btn btn-outline-primary btn-sm" onclick="switchLanguage('{{article.language}}')" id="current-lang-btn">
+                        {% if article.language == 'english' %}🇺🇸 English{% else %}🇸🇦 العربية{% endif %}
+                    </button>
+                    {% if article.get_translations %}
+                    <button type="button" class="btn btn-outline-secondary btn-sm" onclick="switchLanguage('{{article.get_translations.0.language}}')" id="other-lang-btn">
+                        {% if article.language == 'english' %}🇸🇦 العربية{% else %}🇺🇸 English{% endif %}
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
 
             <!-- Third Item: Section Name -->
             <div class="d-flex align-items-center me-4">
@@ -211,8 +244,8 @@ html {
 
     <!-- Content -->
     <div class="col-md-8 col-lg-9">
-      <div class="content-body">
-          {{ article.brief_description|safe }}
+      <div class="content-body" id="article-content">
+          {{ article_brief_description|safe }}
       </div>
       <button type="button" class="btn btn-primary" id="copy-url-btn">
           {% trans "Copy Link" %}
@@ -321,6 +354,15 @@ html {
 
     window.addEventListener("scroll", highlightCurrentHeading);
     highlightCurrentHeading();
+
+    // Language switching functionality
+    function switchLanguage(language) {
+        // Set language cookie
+        document.cookie = `language=${language === 'arabic' ? 'ar' : 'en'}; path=/`;
+        
+        // Reload page to apply language change
+        window.location.reload();
+    }
 });
 </script>
 </div>

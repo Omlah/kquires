@@ -61,8 +61,8 @@
           
           <!-- Change Password -->
           <li class="d-flex align-items-center justify-content-between border-bottom py-2">
-            <a href="{% url 'users:password_reset' %}" 
-                class="text-decoration-none d-flex align-items-center {% is_active 'users:password_reset' as active %}{% if active %} text-a94bea {% else %} text-dark {% endif %}">
+            <a href="{% url 'users:change_password' %}" 
+                class="text-decoration-none d-flex align-items-center {% is_active 'users:change_password' as active %}{% if active %} text-a94bea {% else %} text-dark {% endif %}">
                 <img
                     src="{% static 'images/lock.svg' %}"
                     alt="{% trans 'Change Password Icon' %}"
@@ -73,19 +73,6 @@
             
           </li>
     
-          <!-- Support -->
-          <li class="d-flex align-items-center justify-content-between py-2">
-            <a href="{% url 'tickets:my_list' %}" 
-              class="text-decoration-none d-flex align-items-center {% is_active 'tickets:my_list' as active %}{% if active %} text-a94bea {% else %} text-dark {% endif %}">
-                <img
-                    src="{% static 'images/customersupport.svg' %}"
-                    alt="{% trans 'Support Icon' %}"
-                    class="me-2 {% if active %} icon-a94bea {% endif %}"
-                />
-                <span>{% trans 'Support' %}</span>
-            </a>
-
-          </li>
         </ul>
       </div>
     </div>
