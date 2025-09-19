@@ -22,7 +22,6 @@
     margin: auto;
     overflow: hidden;
   }
-
   .carousel-inner img {
     width: 100%;
     height: 100%;
@@ -35,53 +34,48 @@
     text-align: center;
     display: inline-block;
   }
-  
+
   /* Category validation styling */
   .form-select.is-invalid {
     border-color: #dc3545;
     box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
   }
-  
   .form-select.is-invalid:focus {
     border-color: #dc3545;
     box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
   }
+
   #loader {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent black background */
+    background-color: rgba(0, 0, 0, 0.5);
     display: flex;
     justify-content: center;
     align-items: center;
     z-index: 9999;
   }
-
   .spinner-border {
-    width: 5rem; /* Larger spinner */
+    width: 5rem;
     height: 5rem;
     position: fixed;
     top: 50%;
     left: 50%;
     z-index: 9999;
   }
-  
+
   /* Fix for modal backdrop issues */
   .modal-backdrop {
     z-index: 1040 !important;
   }
-  
   .modal {
     z-index: 1050 !important;
   }
-  
-  /* Ensure body doesn't get stuck with modal styles */
   body.modal-open {
     overflow: hidden !important;
   }
-  
   body:not(.modal-open) {
     overflow: auto !important;
     padding-right: 0 !important;
@@ -90,41 +84,35 @@
 
 {% load i18n %}
 <div class="modal fade" id="newArticleModal" tabindex="-1" aria-labelledby="newArticleModalLabel" aria-hidden="true">
-  <!-- Be sure to include 'enctype="multipart/form-data"' if you're uploading files -->
   <form method="POST" action="{% url 'articles:create' %}" enctype="multipart/form-data">
     {% csrf_token %}
-    <!-- If editing an existing article, you can store its ID here -->
     <input type="hidden" name="id" id="id" />
-    <!-- Track current language being edited -->
     <input type="hidden" name="current_language" id="current_language" value="english" />
 
     <div class="modal-dialog modal-xl">
       <div class="modal-content">
-        <!-- Modal Header -->
         <div class="modal-header">
-          <h5 class="modal-title" id="newArticleModalLabel">{% trans 'New Article' %} <small class="text-muted">({% trans 'Auto-translates to both languages' %})</small></h5>
+          <h5 class="modal-title" id="newArticleModalLabel">
+            {% trans 'New Article' %} <small class="text-muted">({% trans 'Auto-translates to both languages' %})</small>
+          </h5>
           <div class="d-flex align-items-center">
-            <!-- Language Switcher (hidden by default, shown when viewing article) -->
+            <!-- Language Switcher -->
             <div class="dropdown me-3" id="languageSwitcher" style="display: none;">
               <button class="btn btn-outline-primary btn-sm dropdown-toggle" type="button" id="languageDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                 🌐 {% trans 'Language' %}
               </button>
               <ul class="dropdown-menu" aria-labelledby="languageDropdown">
-                <li><a class="dropdown-item" href="javascript:void(0);" id="viewEnglish" onclick="switchArticleLanguage('english'); return false;">
-                  🇺🇸 English
-                </a></li>
-                <li><a class="dropdown-item" href="javascript:void(0);" id="viewArabic" onclick="switchArticleLanguage('arabic'); return false;">
-                  🇸🇦 العربية
-                </a></li>
+                <li><a class="dropdown-item" href="javascript:void(0);" id="viewEnglish" onclick="switchArticleLanguage('english'); return false;">🇺🇸 English</a></li>
+                <li><a class="dropdown-item" href="javascript:void(0);" id="viewArabic" onclick="switchArticleLanguage('arabic'); return false;">🇸🇦 العربية</a></li>
               </ul>
             </div>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% trans 'Close' %}"></button>
           </div>
         </div>
 
-        <!-- Modal Body -->
         <div class="modal-body">
           <div class="row">
+            <!-- Title -->
             <div class="mb-3 col-md-6">
               <label for="title" class="form-label">{% trans 'Title' %}</label>
               <input type="text" name="title" class="form-control" id="title" placeholder="{% trans 'Enter title' %}" required />
@@ -134,16 +122,12 @@
             <div class="mb-3 col-md-6">
               <label for="category" class="form-label">{% trans 'Category' %} <span class="text-danger">*</span></label>
               <select required class="form-select" name="category" id="category">
-                <option value="" selected disabled>
-                  {% trans 'Select Category' %}
-                </option>
+                <option value="" selected disabled>{% trans 'Select Category' %}</option>
                 {% for category in categories %}
                   <option value="{{ category.id }}">{{ category.name }}</option>
                 {% endfor %}
               </select>
-              <div class="invalid-feedback">
-                {% trans 'Please select a category.' %}
-              </div>
+              <div class="invalid-feedback">{% trans 'Please select a category.' %}</div>
             </div>
 
             <!-- Attachment -->
@@ -151,6 +135,7 @@
               <label for="attachment" class="form-label">{% trans 'Add Attachment' %}</label>
               <input type="file" name="attachment" class="form-control" id="attachment" />
             </div>
+
             <div class="mb-3 col-md-6">
               <label for="short_description" class="form-label">{% trans 'Short Description' %}</label>
               <textarea name="short_description" class="form-control" id="short_description" rows="2" placeholder="{% trans 'Enter a short description' %}"></textarea>
@@ -160,10 +145,10 @@
               <label for="brief_description" class="form-label">{% trans 'Brief Description' %}</label>
               <textarea name="brief_description" class="form-control" id="brief_description" rows="3" placeholder="{% trans 'Enter a brief description' %}"></textarea>
               <div id="file-dropzone" class="file-dropzone">
-                <p>{% trans 'Drag and drop files here or click to upload. (Allowed file types: MP4, PDF, PNG, JPG, JPEG)' %}</p>
+                <p>{% trans 'Drag and drop files here or click to upload. (Allowed: MP4, PDF, PNG, JPG, JPEG)' %}</p>
                 <input type="file" id="file_input" multiple name="file" accept="video/mp4,application/pdf,image/png,image/jpeg,image/jpg" />
                 <div id="loader" style="display: none;">
-                  <div class="spinner-border text-primary" role="status" style="width: 5rem; height: 5rem;">
+                  <div class="spinner-border text-primary" role="status">
                     <span class="visually-hidden">{% trans 'Loading...' %}</span>
                   </div>
                 </div>
@@ -172,17 +157,15 @@
           </div>
         </div> <!-- /.modal-body -->
 
-        <!-- Modal Footer -->
         <div class="modal-footer">
           <label for="imageUploadModal" class="btn btn-primary">{% trans 'Upload Slider Images' %}</label>
           <button type="submit" class="btn btn-primary">{% trans 'Save' %}</button>
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans 'Close' %}</button>
         </div>
-        <!-- Upload Images Button -->
 
         <input type="file" id="imageUploadModal" name="images" multiple accept="image/*" style="display: none;" />
 
-        <!-- Bootstrap Slider for Images -->
+        <!-- Image Slider -->
         <div id="carousel-container" class="carousel-container mt-3">
           <div id="carouselExampleModal" class="carousel slide">
             <div class="carousel-inner" id="carouselInnerModal">
@@ -192,500 +175,11 @@
                 </div>
               {% endfor %}
             </div>
-
-            <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleModal" data-bs-slide="prev"><span class="carousel-control-prev-icon bg-black rounded" aria-hidden="true"></span></button>
-
-            <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleModal" data-bs-slide="next"><span class="carousel-control-next-icon bg-black rounded" aria-hidden="true"></span></button>
+            <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleModal" data-bs-slide="prev"><span class="carousel-control-prev-icon bg-black rounded"></span></button>
+            <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleModal" data-bs-slide="next"><span class="carousel-control-next-icon bg-black rounded"></span></button>
           </div>
         </div>
-        <!-- Bootstrap Slider for Images -->
       </div>
     </div>
   </form>
 </div>
-
-<!-- Delete Confirmation Modal -->
-<div class="modal fade" id="deleteConfirmationModal" tabindex="-1" aria-labelledby="deleteConfirmationModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <form id="deleteForm" method="POST" action="">
-        {% csrf_token %}
-        <div class="modal-header">
-          <h5 class="modal-title" id="deleteConfirmationModalLabel">{% trans 'Confirm Delete' %}</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% trans 'Close' %}"></button>
-        </div>
-        <div class="modal-body">
-          {% trans 'Are you sure you want to delete this item? This action cannot be undone.' %}
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans 'Cancel' %}</button>
-          <button type="submit" class="btn btn-danger">{% trans 'Delete' %}</button>
-        </div>
-      </form>
-    </div>
-  </div>
-</div>
-
-<!-- Status Update Modal -->
-<div class="modal fade" id="statusUpdateModal" tabindex="-1" aria-labelledby="statusUpdateModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <form id="statusUpdateForm" method="POST" action="">
-        {% csrf_token %}
-        <div class="modal-header">
-          <h5 class="modal-title" id="statusUpdateModalLabel">{% trans 'Update Status' %}</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% trans 'Close' %}"></button>
-        </div>
-        <div class="modal-body">
-          <p>
-            {% trans 'Are you sure you want to update the status of this article?' %}
-          </p>
-
-          <!-- Comment Field -->
-          <div class="mb-3">
-            <label for="comment" class="form-label">{% trans 'Comment' %}</label>
-            <textarea class="form-control" id="comment" name="comment" rows="3" placeholder="{% trans 'Enter your comment here' %}"></textarea>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans 'Cancel' %}</button>
-          <button type="submit" class="btn btn-primary">{% trans 'Update' %}</button>
-        </div>
-      </form>
-    </div>
-  </div>
-</div>
-
-<!-- Show Comment Modal -->
-<div class="modal fade" id="showCommentModal" tabindex="-1" aria-labelledby="showCommentModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <form id="statusUpdateForm" method="POST" action="">
-        {% csrf_token %}
-        <div class="modal-header">
-          <h5 class="modal-title" id="showCommentModalLabel">{% trans 'Status Comment' %}</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% trans 'Close' %}"></button>
-        </div>
-        <div class="modal-body">
-          <p id="comment-content"></p>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans 'Close' %}</button>
-        </div>
-      </form>
-    </div>
-  </div>
-</div>
-
-<!--  Visibility Toggle Modal
-<div class="modal fade" id="visibilityToggleModal" tabindex="-1" aria-labelledby="visibilityToggleModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <form id="visibilityToggleForm" method="POST" action="">
-        {% csrf_token %}
-        <div class="modal-header">
-          <h5 class="modal-title" id="visibilityToggleModalLabel">{% trans "Toggle Visibility" %}</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% trans 'Close' %}"></button>
-        </div>
-        <div class="modal-body">
-          {% trans "Are you sure you want to update the visibility of this article?" %}
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
-          <button type="submit" class="btn btn-primary">{% trans "Confirm" %}</button>
-        </div>
-      </form>
-    </div>
-  </div>
-</div>  -->
-
-<script src="https://cdn.ckeditor.com/4.21.0/full/ckeditor.js"></script>
-<script>
-  CKEDITOR.replace('brief_description', {
-    height: 200,
-
-    // Disable image drag and drop, file uploading, and other features
-    removePlugins: 'image,uploadimage,flash,forms,elementspath,resize',
-
-    // Disable the 'drag and drop' feature
-    disableObjectResizing: true, // Disable object resizing
-    disableNativeSpellChecker: false, // Enable spell checker if needed
-
-    toolbar: [
-      { name: 'clipboard', items: ['Cut', 'Copy', 'Paste', 'Undo', 'Redo'] },
-      { name: 'basicstyles', items: ['Bold', 'Italic', 'Underline', 'Strike', 'RemoveFormat'] },
-      { name: 'paragraph', items: ['NumberedList', 'BulletedList', '-', 'Blockquote'] },
-      { name: 'links', items: ['Link', 'Unlink'] },
-      {
-        name: 'insert',
-        items: ['Table', 'HorizontalRule', 'SpecialChar']
-      },
-      { name: 'styles', items: ['Styles', 'Format', 'Font', 'FontSize'] },
-      { name: 'colors', items: ['TextColor', 'BGColor'] },
-      { name: 'tools', items: ['Maximize'] }
-    ]
-  })
-
-  // ✅ Handle Slider Upload (Only for Images, Not PDFs or Videos)
-  document.getElementById('imageUploadModal').addEventListener('change', function (event) {
-    const files = event.target.files
-    const carouselInnerModal = document.getElementById('carouselInnerModal')
-    const uniqueId = 'carouselExampleModal' + new Date().getTime()
-    let firstImageAdded = false // Track first active image
-
-    if (files.length > 0) {
-      for (let i = 0; i < files.length; i++) {
-        const file = files[i]
-
-        // ✅ Check if the uploaded file is an image
-        if (!file.type.startsWith('image/')) {
-          continue // Skip non-image files
-        }
-
-        const reader = new FileReader()
-
-        reader.onload = function (e) {
-          // ✅ Create new image element
-          const img = document.createElement('img')
-          img.src = e.target.result
-          img.classList.add('d-block', 'w-100')
-          img.alt = `Slide ${i + 1}`
-          img.style = 'max-height:200px'
-
-          // ✅ Create new carousel item
-          const carouselItem = document.createElement('div')
-          carouselItem.classList.add('carousel-item')
-
-          // ✅ Ensure first image is active
-          if (!firstImageAdded) {
-            carouselItem.classList.add('active')
-            firstImageAdded = true
-          }
-
-          carouselItem.appendChild(img)
-          carouselInnerModal.appendChild(carouselItem)
-        }
-
-        reader.readAsDataURL(file)
-      }
-
-      setTimeout(() => {
-        const carouselContainer = document.getElementById('carousel-container')
-        const clonedCarousel = carouselContainer.cloneNode(true)
-        clonedCarousel.id = uniqueId
-        const carouselHtml = clonedCarousel.outerHTML
-
-        let editorContent = CKEDITOR.instances.brief_description.getData()
-        let parser = new DOMParser()
-        let doc = parser.parseFromString(editorContent, 'text/html')
-        let ckEditorCarousel = doc.querySelector('.carousel-container')
-
-        if (ckEditorCarousel) {
-          // ✅ Append new images to existing CKEditor slider
-          let ckEditorCarouselInner = ckEditorCarousel.querySelector('.carousel-inner')
-          let newImages = document.querySelectorAll('#carouselInnerModal .carousel-item')
-
-          newImages.forEach((image, index) => {
-            let clone = image.cloneNode(true)
-            if (index === 0) clone.classList.add('active') // Ensure first image is active
-            ckEditorCarouselInner.appendChild(clone)
-          })
-
-          // ✅ Remove multiple active slides, keep only one active
-          let allSlides = ckEditorCarouselInner.querySelectorAll('.carousel-item')
-          allSlides.forEach((slide, index) => {
-            slide.classList.remove('active')
-            if (index === 0) slide.classList.add('active') // Keep only the first slide active
-          })
-
-          // ✅ Update CKEditor content
-          CKEDITOR.instances.brief_description.setData(doc.body.innerHTML)
-        } else {
-          // ✅ If no existing carousel, insert a new one
-          let element = CKEDITOR.dom.element.createFromHtml(carouselHtml)
-          CKEDITOR.instances.brief_description.insertElement(element)
-        }
-
-        // ✅ Force Bootstrap to refresh the carousel
-        setTimeout(() => {
-          let carousel = document.querySelector(`#${uniqueId}`)
-          if (carousel) {
-            new bootstrap.Carousel(carousel, {
-              interval: false
-            })
-          }
-        }, 500)
-      }, 300)
-    } else {
-      alert('Please upload at least one image.')
-    }
-  })
-
-  document.addEventListener('DOMContentLoaded', function () {
-    document.querySelectorAll('.show-comment').forEach((link) => {
-      link.addEventListener('click', function () {
-        document.getElementById('comment-content').textContent = this.getAttribute('data-comment')
-      })
-    })
-  })
-
-  // Language switching function
-  function switchArticleLanguage(language) {
-    console.log('🌐 switchArticleLanguage called with:', language);
-    console.log('🌐 window.currentArticleId:', window.currentArticleId);
-    console.log('🌐 window.mainArticleId:', window.mainArticleId);
-    console.log('🌐 window.fetchArticleDetails exists:', !!window.fetchArticleDetails);
-    
-    if (window.mainArticleId) {
-      console.log(`Switching to ${language} for main article ${window.mainArticleId}`);
-      
-      // Check if we need to create a translation
-      const arabicButton = document.getElementById('viewArabic');
-      const needsTranslation = arabicButton && arabicButton.innerHTML.includes('+');
-      
-      if (needsTranslation && language === 'arabic') {
-        console.log('🔄 Creating Arabic translation...');
-        createTranslation(window.mainArticleId, 'arabic');
-      } else {
-        if (window.fetchArticleDetails) {
-          window.fetchArticleDetails(window.mainArticleId, language);
-        }
-      }
-      
-      // Update the current language field
-      document.getElementById('current_language').value = language;
-      
-      // Update dropdown button text
-      const languageDropdown = document.getElementById('languageDropdown');
-      if (languageDropdown) {
-        if (language === 'english') {
-          languageDropdown.innerHTML = '🇺🇸 English';
-        } else {
-          languageDropdown.innerHTML = '🇸🇦 العربية';
-        }
-      }
-      
-      // Clean up any modal state issues after language switch
-      setTimeout(() => {
-        cleanupModalState();
-      }, 100);
-    } else {
-      console.log('❌ No current article ID found');
-    }
-  }
-
-  // Function to create translation
-  function createTranslation(articleId, targetLanguage) {
-    console.log(`🔄 Creating ${targetLanguage} translation for article ${articleId}`);
-    
-    // Show loading state
-    const button = document.getElementById('viewArabic');
-    if (button) {
-      button.disabled = true;
-      button.innerHTML = '⏳';
-      button.title = '{% trans "Creating translation..." %}';
-    }
-    
-    // Call translation API
-    fetch(`/articles/api/translate/${articleId}/`, {
-      method: 'POST',
-      headers: {
-        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        target_language: targetLanguage
-      })
-    })
-    .then(response => response.json())
-    .then(data => {
-      console.log('Translation response:', data);
-      
-        if (data.translation_preview) {
-        // Translation completed synchronously
-        console.log('✅ Translation completed, refreshing content...');
-        if (window.fetchArticleDetails) {
-          window.fetchArticleDetails(window.mainArticleId, targetLanguage);
-        }
-      } else if (data.task_id) {
-        // Translation started asynchronously
-        console.log('⏳ Translation started, checking status...');
-        checkTranslationStatus(data.task_id, articleId, targetLanguage);
-      } else {
-        console.error('❌ Translation failed:', data.error);
-        alert('{% trans "Translation failed: " %}' + (data.error || '{% trans "Unknown error" %}'));
-        
-        // Reset button
-        if (button) {
-          button.disabled = false;
-          button.innerHTML = '🇸🇦+';
-          button.title = '{% trans "Create Arabic translation" %}';
-        }
-      }
-    })
-    .catch(error => {
-      console.error('❌ Translation request failed:', error);
-      alert('{% trans "Translation request failed" %}');
-      
-      // Reset button
-      if (button) {
-        button.disabled = false;
-        button.innerHTML = '🇸🇦+';
-        button.title = '{% trans "Create Arabic translation" %}';
-      }
-    });
-  }
-
-  // Function to check translation status
-  function checkTranslationStatus(taskId, articleId, targetLanguage) {
-    const checkStatus = () => {
-      fetch(`/articles/api/task-status/${taskId}/`)
-        .then(response => response.json())
-        .then(data => {
-          console.log('Task status:', data);
-          
-          if (data.status === 'SUCCESS') {
-            console.log('✅ Translation completed, refreshing content...');
-            if (window.fetchArticleDetails) {
-              window.fetchArticleDetails(window.mainArticleId, targetLanguage);
-            }
-          } else if (data.status === 'FAILURE') {
-            console.error('❌ Translation failed');
-            alert('{% trans "Translation failed" %}');
-            
-            // Reset button
-            const button = document.getElementById('viewArabic');
-            if (button) {
-              button.disabled = false;
-              button.innerHTML = '🇸🇦+';
-              button.title = '{% trans "Create Arabic translation" %}';
-            }
-          } else {
-            // Still processing, check again in 2 seconds
-            setTimeout(checkStatus, 2000);
-          }
-        })
-        .catch(error => {
-          console.error('❌ Status check failed:', error);
-          setTimeout(checkStatus, 2000);
-        });
-    };
-    
-    checkStatus();
-  }
-
-  // Function to clean up modal state
-  function cleanupModalState() {
-    // Remove any remaining modal backdrop
-    const backdrops = document.querySelectorAll('.modal-backdrop');
-    backdrops.forEach(backdrop => backdrop.remove());
-    
-    // Remove modal-open class from body
-    document.body.classList.remove('modal-open');
-    
-    // Reset body padding if it was modified
-    document.body.style.paddingRight = '';
-    
-    // Reset overflow
-    document.body.style.overflow = '';
-  }
-  
-  // Make cleanup function globally available
-  window.cleanupModalState = cleanupModalState;
-
-  // Auto-translation notice
-  document.getElementById('newArticleModal').addEventListener('show.bs.modal', function () {
-    console.log('📝 New Article modal opened - AI will auto-detect language and create both versions');
-    
-    // Clean up any previous modal state
-    cleanupModalState();
-    
-    // Only hide language switcher if we're creating a new article (no current article ID)
-    if (!window.currentArticleId) {
-      const languageSwitcher = document.getElementById('languageSwitcher');
-      if (languageSwitcher) {
-        languageSwitcher.style.display = 'none';
-      }
-      
-      // Reset modal title for new articles
-      const modalTitle = document.getElementById('newArticleModalLabel');
-      if (modalTitle) {
-        modalTitle.innerHTML = '{% trans "New Article" %} <small class="text-muted">({% trans "Auto-translates to both languages" %})</small>';
-      }
-    } else {
-      // For existing articles, show language switcher and update title
-      const languageSwitcher = document.getElementById('languageSwitcher');
-      if (languageSwitcher) {
-        languageSwitcher.style.display = 'block';
-      }
-      
-      const modalTitle = document.getElementById('newArticleModalLabel');
-      if (modalTitle) {
-        modalTitle.innerHTML = '{% trans "Edit Article" %} <small class="text-muted">({% trans "Switch between languages" %})</small>';
-      }
-    }
-  });
-
-  // Add form validation before submission
-  document.querySelector('form[action="{% url 'articles:create' %}"]').addEventListener('submit', function(e) {
-    const categorySelect = document.getElementById('category');
-    const categoryValue = categorySelect.value;
-    
-    // Check if category is selected
-    if (!categoryValue || categoryValue === '') {
-      e.preventDefault(); // Prevent form submission
-      
-      // Show error message
-      alert('{% trans "Please select a category before saving the article." %}');
-      
-      // Focus on category field
-      categorySelect.focus();
-      
-      // Add visual feedback
-      categorySelect.classList.add('is-invalid');
-      
-      // Remove error styling after user selects a category
-      categorySelect.addEventListener('change', function() {
-        if (this.value) {
-          this.classList.remove('is-invalid');
-        }
-      });
-      
-      return false;
-    }
-  });
-
-  // Reset modal when closed
-  document.getElementById('newArticleModal').addEventListener('hidden.bs.modal', function () {
-    // Clear the current article ID when modal is closed
-    window.currentArticleId = null;
-    window.mainArticleId = null;
-    
-    // Reset form fields
-    document.getElementById('id').value = '';
-    document.getElementById('title').value = '';
-    document.getElementById('short_description').value = '';
-    document.getElementById('category').selectedIndex = 0;
-    document.getElementById('current_language').value = 'english';
-    
-    // Reset CKEditor
-    if (CKEDITOR.instances.brief_description) {
-      CKEDITOR.instances.brief_description.setData('');
-    }
-    
-    // Hide language switcher for next time
-    const languageSwitcher = document.getElementById('languageSwitcher');
-    if (languageSwitcher) {
-      languageSwitcher.style.display = 'none';
-    }
-    
-    // Reset modal title
-    const modalTitle = document.getElementById('newArticleModalLabel');
-    if (modalTitle) {
-      modalTitle.innerHTML = '{% trans "New Article" %} <small class="text-muted">({% trans "Auto-translates to both languages" %})</small>';
-    }
-    
-    // Clean up modal state
-    cleanupModalState();
-  });
-</script>

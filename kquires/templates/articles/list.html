@@ -15,7 +15,6 @@
       text-align: center;
       background-color: #fff;
       padding: 20px;
-
       border-radius: 10px;
     }
     .profile-card img {
@@ -25,7 +24,6 @@
     }
     .custom-table {
       border-radius: 8px;
-
       overflow: hidden;
     }
     .custom-table thead {
@@ -44,13 +42,11 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      background-color: #f8f9fa; /* Background color */
+      background-color: #f8f9fa;
       padding: 10px;
-      /* Border for layout visibility */
     }
-
     .btn-new {
-      background-color: #007bff; /* Blue background */
+      background-color: #007bff;
       color: white;
       padding: 8px 16px;
       border: none;
@@ -58,18 +54,14 @@
       font-size: 14px;
       cursor: pointer;
     }
-
     .btn-new:hover {
-      background-color: #0056b3; /* Darker blue on hover */
+      background-color: #0056b3;
     }
-
     .search-bar input {
       width: 300px;
       padding: 8px;
-
       border-radius: 4px;
     }
-
     .btn-categories {
       background-color: #f1f1f1;
       padding: 8px 16px;
@@ -78,6 +70,7 @@
       font-size: 14px;
     }
   </style>
+
   <div class="d-flex align-items-center justify-content-between bg-light p-2">
     <div class="text-center" style="font-size: 20px; color:black; font-weight: bold; cursor: pointer;">
       {% trans 'Articles' %}
@@ -85,39 +78,37 @@
 
     <div class="search-bar mx-auto" style="width: 300px; position: relative;">
       <form id="search-form" hx-get="{% url 'articles:list' %}" hx-target="#articles-table" hx-trigger="keyup changed delay:300ms">
-          <input 
-              type="text" 
-              id="article-search" 
-              class="form-control form-control-sm" 
-              placeholder="{% trans 'Search Articles' %}" 
-              name="q"
-              {% if LANGUAGE_CODE == 'ar' %}
-                  dir="rtl"
-                  style="padding-right: 10px; text-align: right;"
-              {% else %}
-                  dir="ltr"
-                  style="padding-left: 10px; text-align: left;"
-              {% endif %}
-          />
+        <input 
+            type="text" 
+            id="article-search" 
+            class="form-control form-control-sm" 
+            placeholder="{% trans 'Search Articles' %}" 
+            name="q"
+            {% if LANGUAGE_CODE == 'ar' %}
+                dir="rtl"
+                style="padding-right: 10px; text-align: right;"
+            {% else %}
+                dir="ltr"
+                style="padding-left: 10px; text-align: left;"
+            {% endif %}
+        />
       </form>
   
       {% if LANGUAGE_CODE == 'ar' %}
-          <!-- Icon on the left for Arabic (RTL) -->
-          <img src="{% static 'images/searchb.svg' %}" alt="{% trans 'Search Icon' %}"
-              class="position-absolute top-50 start-0 translate-middle-y"
-              style="width: 20px; height: 20px;">
+        <img src="{% static 'images/searchb.svg' %}" alt="{% trans 'Search Icon' %}"
+            class="position-absolute top-50 start-0 translate-middle-y"
+            style="width: 20px; height: 20px;">
       {% else %}
-          <!-- Icon on the right for LTR -->
-          <img src="{% static 'images/searchb.svg' %}" alt="{% trans 'Search Icon' %}"
-              class="position-absolute top-50 end-0 translate-middle-y"
-              style="width: 20px; height: 20px;">
+        <img src="{% static 'images/searchb.svg' %}" alt="{% trans 'Search Icon' %}"
+            class="position-absolute top-50 end-0 translate-middle-y"
+            style="width: 20px; height: 20px;">
       {% endif %}
-  </div>
+    </div>
+
     <button type="button" class="btn btn-primary new-article-btn" data-bs-toggle="modal" data-bs-target="#newArticleModal">+{% trans 'New Article' %}</button>
     <a href="{% url 'articles:export_activity_log_excel' %}"><img src="{% static 'images/export.svg' %}" alt="{% trans 'Section Icon' %}" class="ms-2" /></a>
   </div>
 
-  <!-- Container to align table with the above div -->
   <div class="container-fluid mt-3">
     <div class="form-section">
       <div id="articles-table">
@@ -137,46 +128,42 @@
       CKEDITOR.instances['brief_description'].setData('')
     })
 
-    window.currentArticleId = null; // Store current article ID for language switching
-    window.mainArticleId = null; // Store main article ID for language switching
-    window.currentLanguage = 'english'; // Store current language being edited
+    // 🌍 Multi-language state
+    window.currentArticleId = null;
+    window.mainArticleId = null;
+    window.currentLanguage = 'english';
 
+    // 🌍 Fetch article with optional language param
     window.fetchArticleDetails = function(articleId, language = 'english') {
-      window.currentArticleId = articleId; // Store for language switching
-      window.currentLanguage = language; // Store current language
-      
+      window.currentArticleId = articleId;
+      window.currentLanguage = language;
+
       fetch(`{% url 'articles:article_detail_api' '000' %}`.replace('000', articleId) + `?language=${language}`)
         .then((response) => response.json())
         .then((data) => {
-          console.log('Fetched Article Data:', data)
-
           document.getElementById('id').value = data.id
           document.getElementById('title').value = data.title
           document.getElementById('short_description').value = data.short_description
           document.getElementById('current_language').value = data.current_language
-          
-          // Store both IDs for proper language switching
+
           window.currentArticleId = data.id
           window.mainArticleId = data.main_id
 
-          // Ensure CKEditor is ready before inserting content
           if (CKEDITOR.instances.brief_description) {
-            CKEDITOR.instances.brief_description.destroy() // Reset CKEditor to avoid conflicts
+            CKEDITOR.instances.brief_description.destroy()
           }
 
           CKEDITOR.replace('brief_description', {
             height: 300,
-            allowedContent: true, // Allow all HTML content, including images
+            allowedContent: true,
             extraAllowedContent: 'img[*]{*}; p[*]{*}; figure[*]{*}; figcaption[*]{*};'
           })
 
-          // Wait for CKEditor to fully initialize before inserting content
           setTimeout(() => {
             CKEDITOR.instances.brief_description.setData(data.brief_description)
-            console.log('Inserted Data into CKEditor:', data.brief_description)
           }, 500)
 
-          // ✅ Set category dropdown value
+          // ✅ Category selection
           const categorySelect = document.getElementById('category')
           const options = categorySelect.options
           for (let i = 0; i < options.length; i++) {
@@ -186,36 +173,17 @@
             }
           }
 
-          // Show language switcher and update button states
+          // 🌍 Update language switcher UI
           const languageSwitcher = document.getElementById('languageSwitcher');
-          console.log('🔍 Language switcher element:', languageSwitcher);
-          console.log('🔍 Data received:', data);
-          
           if (languageSwitcher) {
             languageSwitcher.style.display = 'block';
-            console.log('✅ Language switcher shown');
-            
-            // Update dropdown button text based on current language
             const languageDropdown = document.getElementById('languageDropdown');
             if (languageDropdown) {
-              if (data.current_language === 'english') {
-                languageDropdown.innerHTML = '🇺🇸 English';
-              } else {
-                languageDropdown.innerHTML = '🇸🇦 العربية';
-              }
+              languageDropdown.innerHTML = data.current_language === 'english' ? '🇺🇸 English' : '🇸🇦 العربية';
             }
-            
-            // Update dropdown item states based on available languages
             const viewEnglish = document.getElementById('viewEnglish');
             const viewArabic = document.getElementById('viewArabic');
-            
-            console.log('🔍 English button:', viewEnglish);
-            console.log('🔍 Arabic button:', viewArabic);
-            console.log('🔍 Has English:', data.has_english);
-            console.log('🔍 Has Arabic:', data.has_arabic);
-            
             if (viewEnglish && viewArabic) {
-              // Update dropdown items
               if (!data.has_arabic) {
                 viewArabic.innerHTML = '🇸🇦 العربية +';
                 viewArabic.title = '{% trans "Create Arabic translation" %}';
@@ -223,19 +191,12 @@
                 viewArabic.innerHTML = '🇸🇦 العربية';
                 viewArabic.title = '{% trans "View in Arabic" %}';
               }
-              
               viewEnglish.innerHTML = '🇺🇸 English';
               viewEnglish.title = '{% trans "View in English" %}';
-              
-              console.log('✅ Dropdown states updated');
-            } else {
-              console.log('❌ Dropdown items not found');
             }
-          } else {
-            console.log('❌ Language switcher not found');
           }
 
-          // Update modal title to indicate viewing mode
+          // Modal title with language
           const modalTitle = document.getElementById('newArticleModalLabel');
           if (modalTitle) {
             modalTitle.innerHTML = `{% trans 'View Article' %} <small class="text-muted">(${data.current_language})</small>`;
@@ -247,10 +208,9 @@
         .catch((error) => console.error('Error fetching article details:', error))
     }
 
-
     function setDeleteFormAction(targetId) {
       const deleteForm = document.getElementById('deleteForm')
-      const deleteUrl = `{% url 'articles:delete' '000' %}`.replace('000', targetId) // Update the path to match your URL configuration
+      const deleteUrl = `{% url 'articles:delete' '000' %}`.replace('000', targetId)
       deleteForm.action = deleteUrl
     }
 
@@ -259,7 +219,6 @@
       const actionUrl = `{% url 'articles:status' '000' %}`.replace('000', targetId)
       form.action = actionUrl
 
-      // Add status as a hidden input in the form
       let statusInput = form.querySelector('input[name="status"]')
       if (!statusInput) {
         statusInput = document.createElement('input')
@@ -275,7 +234,6 @@
       const actionUrl = `{% url 'articles:visibility' '000' %}`.replace('000', targetId)
       form.action = actionUrl
 
-      // Add visibility as a hidden input in the form
       let visibilityInput = form.querySelector('input[name="visibility"]')
       if (!visibilityInput) {
         visibilityInput = document.createElement('input')
@@ -286,6 +244,7 @@
       visibilityInput.value = visibility
     }
 
+    // File drop/upload handlers (unchanged)
     document.addEventListener('DOMContentLoaded', function () {
       const dropzone = document.getElementById('file-dropzone')
       const fileInput = document.getElementById('file_input')
@@ -302,7 +261,6 @@
       dropzone.addEventListener('drop', async (event) => {
         event.preventDefault()
         dropzone.classList.remove('dragover')
-
         const files = event.dataTransfer.files
         await handleFiles(files)
       })
@@ -322,86 +280,51 @@
             formData.append('file', file)
 
             try {
-              // 1️⃣ **Upload Image to Server**
-              const response = await fetch('/articles/process_file/', {
-                method: 'POST',
-                body: formData
-              })
-
-              if (!response.ok) {
-                console.error('File upload failed.')
-                return
-              }
-
+              const response = await fetch('/articles/process_file/', { method: 'POST', body: formData })
+              if (!response.ok) { console.error('File upload failed.'); return }
               const data = await response.json()
-              console.log('Server Response:', data)
-              if (data.image_url && /\.(jpeg|jpg|png|gif|webp)$/i.test(data.image_url)) {
-                // 2️⃣ **Read Image from Server and Preview in CKEditor**
-                console.log('Uploaded Image URL:', data.image_url)
 
+              if (data.image_url && /\.(jpeg|jpg|png|gif|webp)$/i.test(data.image_url)) {
                 const BASE_URL = window.location.origin
                 const imageURL = data.image_url.startsWith('http') ? data.image_url : BASE_URL + data.image_url
-                console.log('Final Image URL:', imageURL)
 
-                // **Create an <img> element**
                 const img = document.createElement('img')
                 img.alt = 'Uploaded Image'
                 img.classList.add('d-block')
                 img.style = 'max-width: 100%; max-height: 300px;'
 
-                // **Use FileReader to load the backend image**
                 const backendImage = new Image()
-                backendImage.crossOrigin = 'anonymous' // **Prevents CORS issues**
+                backendImage.crossOrigin = 'anonymous'
                 backendImage.src = imageURL
 
                 backendImage.onload = function () {
-                  console.log('Image successfully loaded from backend:', imageURL)
                   img.src = backendImage.src
-
                   const imgWrapper = document.createElement('div')
                   imgWrapper.classList.add('uploaded-image')
                   imgWrapper.appendChild(img)
-
-                  // **Insert into CKEditor**
                   setTimeout(() => {
                     let element = CKEDITOR.dom.element.createFromHtml(imgWrapper.outerHTML)
                     CKEDITOR.instances.brief_description.insertElement(element)
-                    console.log('Final Image inserted into CKEditor:', img.src)
                   }, 300)
                 }
-
-                backendImage.onerror = function () {
-                  console.error('Failed to load image from backend:', imageURL)
-                }
               } else if (data.video_url && /\.(mp4|webm|ogg)$/i.test(data.video_url)) {
-                console.log('Uploaded Video URL:', data.video_url)
-
                 const BASE_URL = window.location.origin
                 const videoURL = data.video_url.startsWith('http') ? data.video_url : BASE_URL + data.video_url
-
-                // **Create a <video> element**
                 const video = document.createElement('video')
                 video.src = videoURL
-                video.controls = true // Enable play/pause controls
+                video.controls = true
                 video.classList.add('d-block', 'w-100')
                 video.style = 'max-width: 100%; max-height: 400px;'
 
                 const videoWrapper = document.createElement('div')
                 videoWrapper.classList.add('uploaded-video')
                 videoWrapper.appendChild(video)
-
-                // **Insert into CKEditor**
                 setTimeout(() => {
                   let element = CKEDITOR.dom.element.createFromHtml(videoWrapper.outerHTML)
                   CKEDITOR.instances.brief_description.insertElement(element)
-                  console.log('Final Video inserted into CKEditor:', video.src)
                 }, 300)
               } else if (data.content) {
-                console.log('Uploaded Text Content:', data.content)
-
                 CKEDITOR.instances.brief_description.insertHtml(`<p><strong>Extracted Content:</strong> </p><p>${data.content.replace(/\n/g, '<br>')}</p>`)
-              } else {
-                console.warn('No image URL returned from server.')
               }
             } catch (error) {
               console.error('Error uploading file:', error)
