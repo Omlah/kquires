@@ -1,13 +1,25 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.views.generic import ListView, DetailView, CreateView, DeleteView, UpdateView, View
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.db.models import Q
 from django.utils.html import strip_tags
 from django.utils.translation import get_language
+from django.views.decorators.csrf import csrf_exempt
 from .models import Article
 from .forms import ArticleForm
 from ..notifications.models import Notification
 from ..utils.translation_service import detect_language, translate_text, clean_ai_json
+import csv
+import os
+from io import TextIOWrapper
+from openpyxl import Workbook
+from django.conf import settings
+from django.core.files.storage import default_storage
+from django.core.files.base import ContentFile
+from django.utils.text import get_valid_filename
+import uuid
+from PyPDF2 import PdfReader
+from openpyxl import load_workbook
 
 
 class ArticleIndexView(DetailView):
@@ -185,3 +197,126 @@ def upload_article(request):
     else:
         form = ArticleForm()
     return render(request, "articles/upload.html", {"form": form})
+
+
+def export_xls(request):
+    """Export articles to Excel format"""
+    # Create a new Excel workbook and sheet
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Articles"
+
+    # Add headers to the sheet
+    headers = ['ID', 'Title', 'Status', 'Category', 'Short Description', 'Brief Description', 'By', 'Created At']
+    ws.append(headers)
+
+    # Get data from the database
+    articles = Article.objects.filter(parent_article__isnull=True)
+
+    # Write data to the Excel sheet
+    for article in articles:
+        ws.append([
+            article.id,
+            article.title,
+            article.status,
+            article.category.name if article.category else '',
+            article.short_description,
+            article.brief_description,
+            article.user.name if article.user else '',
+            article.created_at.strftime('%Y-%m-%d %H:%M:%S')
+        ])
+
+    # Create an HTTP response with an Excel file
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = 'attachment; filename=articles.xlsx'
+
+    # Save the workbook to the response
+    wb.save(response)
+    return response
+
+
+def export_csv(request):
+    """Export articles to CSV format"""
+    # Define the response as a CSV file
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="articles.csv"'
+
+    # Create a CSV writer
+    writer = csv.writer(response)
+
+    # Write the header row
+    writer.writerow(['ID', 'Title', 'Status', 'Category', 'Short Description', 'Brief Description', 'By', 'Created At'])
+
+    # Write data rows
+    articles = Article.objects.filter(parent_article__isnull=True)
+    for article in articles:
+        writer.writerow([
+            article.id,
+            article.title,
+            article.status,
+            article.category.name if article.category else '',
+            article.short_description,
+            article.brief_description,
+            article.user.name if article.user else '',
+            article.created_at
+        ])
+
+    return response
+
+
+@csrf_exempt
+def process_file(request):
+    """Process uploaded files (PDF, CSV, Excel, images, videos)"""
+    if request.method == "POST" and request.FILES.get("file"):
+        uploaded_file = request.FILES["file"]
+        file_type = uploaded_file.content_type
+
+        try:
+            # Handle Image Uploads
+            if file_type.startswith("image/"):
+                safe_filename = get_valid_filename(uploaded_file.name)
+                unique_filename = f"{uuid.uuid4().hex}_{safe_filename}"
+                save_path = os.path.join("articles", unique_filename)
+                path = default_storage.save(save_path, ContentFile(uploaded_file.read()))
+                image_url = settings.MEDIA_URL + path
+                return JsonResponse({"image_url": image_url})
+
+            # Handle Video Uploads
+            elif file_type.startswith("video/"):
+                safe_filename = get_valid_filename(uploaded_file.name)
+                unique_filename = f"{uuid.uuid4().hex}_{safe_filename}"
+                save_path = os.path.join("videos", unique_filename)
+                path = default_storage.save(save_path, ContentFile(uploaded_file.read()))
+                video_url = settings.MEDIA_URL + path
+                return JsonResponse({"video_url": video_url})
+
+            # Handle PDF Uploads
+            elif file_type == "application/pdf":
+                pdf_reader = PdfReader(uploaded_file)
+                content = "\n".join([page.extract_text() for page in pdf_reader.pages if page.extract_text()])
+                return JsonResponse({"content": content})
+
+            # Handle CSV Uploads
+            elif file_type == "text/csv":
+                csv_reader = csv.reader(TextIOWrapper(uploaded_file.file, encoding="utf-8"))
+                content = "\n".join([", ".join(row) for row in csv_reader])
+                return JsonResponse({"content": content})
+
+            # Handle Excel Uploads
+            elif file_type in [
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                "application/vnd.ms-excel"
+            ]:
+                workbook = load_workbook(uploaded_file)
+                sheet = workbook.active
+                rows = [", ".join(map(str, row)) for row in sheet.iter_rows(values_only=True)]
+                content = "\n".join(rows)
+                return JsonResponse({"content": content})
+
+            else:
+                return JsonResponse({"error": "Unsupported file type"}, status=400)
+
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=500)
+
+    return JsonResponse({"error": "Invalid request"}, status=400)
