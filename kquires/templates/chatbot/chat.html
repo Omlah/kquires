@@ -1,0 +1,325 @@
+{% extends 'pages/layout/sidebar.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}
+  kquires | {% trans 'AI Chatbot' %}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid h-100">
+    <div class="row h-100">
+        <!-- Chat Interface -->
+        <div class="col-12">
+            <div class="card h-100 d-flex flex-column">
+                <!-- Chat Header -->
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-robot me-2"></i>
+                        {% trans 'AI Knowledge Assistant' %}
+                    </h5>
+                    <div>
+                        <button class="btn btn-sm btn-outline-light" onclick="clearChat()">
+                            <i class="fas fa-trash me-1"></i>
+                            {% trans 'Clear Chat' %}
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Chat Messages Area -->
+                <div class="card-body flex-grow-1 d-flex flex-column" style="height: 600px;">
+                    <div id="chat-messages" class="flex-grow-1 overflow-auto mb-3 p-3" style="background-color: #f8f9fa; border-radius: 8px;">
+                        <!-- Messages will be loaded here -->
+                        <div class="text-center text-muted">
+                            <i class="fas fa-robot fa-3x mb-3"></i>
+                            <p>{% trans 'Welcome! I can help you find information from our knowledge base. Ask me anything!' %}</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Message Input Area -->
+                    <div class="input-group">
+                        <input type="text" id="message-input" class="form-control" 
+                               placeholder="{% trans 'Type your question here...' %}" 
+                               onkeypress="handleKeyPress(event)">
+                        <button class="btn btn-primary" type="button" onclick="sendMessage()" id="send-btn">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Loading Spinner -->
+<div id="loading-spinner" class="d-none text-center">
+    <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">{% trans 'Loading...' %}</span>
+    </div>
+    <p class="mt-2">{% trans 'AI is thinking...' %}</p>
+</div>
+
+<style>
+    .message {
+        margin-bottom: 15px;
+        padding: 12px 16px;
+        border-radius: 18px;
+        max-width: 80%;
+        word-wrap: break-word;
+    }
+    
+    .message.user {
+        background-color: #007bff;
+        color: white;
+        margin-left: auto;
+        text-align: right;
+    }
+    
+    .message.bot {
+        background-color: white;
+        color: #333;
+        border: 1px solid #dee2e6;
+        margin-right: auto;
+    }
+    
+    .message.system {
+        background-color: #e9ecef;
+        color: #6c757d;
+        text-align: center;
+        margin: 0 auto;
+        max-width: 60%;
+        font-style: italic;
+    }
+    
+    .referenced-articles {
+        margin-top: 10px;
+        padding: 10px;
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        border-left: 4px solid #007bff;
+    }
+    
+    .referenced-articles h6 {
+        color: #007bff;
+        margin-bottom: 8px;
+    }
+    
+    .referenced-articles a {
+        color: #007bff;
+        text-decoration: none;
+        display: block;
+        padding: 4px 0;
+    }
+    
+    .referenced-articles a:hover {
+        text-decoration: underline;
+    }
+    
+    .chat-container {
+        height: calc(100vh - 200px);
+    }
+    
+    #chat-messages {
+        scroll-behavior: smooth;
+    }
+    
+    .typing-indicator {
+        display: none;
+        padding: 10px 16px;
+        background-color: white;
+        border: 1px solid #dee2e6;
+        border-radius: 18px;
+        margin-right: auto;
+        max-width: 80px;
+    }
+    
+    .typing-dots {
+        display: flex;
+        gap: 4px;
+    }
+    
+    .typing-dot {
+        width: 8px;
+        height: 8px;
+        background-color: #6c757d;
+        border-radius: 50%;
+        animation: typing 1.4s infinite ease-in-out;
+    }
+    
+    .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+    .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+    
+    @keyframes typing {
+        0%, 80%, 100% { transform: scale(0.8); opacity: 0.5; }
+        40% { transform: scale(1); opacity: 1; }
+    }
+</style>
+
+<script>
+let currentSessionId = '{{ session.session_id }}';
+
+// Load chat history on page load
+document.addEventListener('DOMContentLoaded', function() {
+    loadChatHistory();
+});
+
+function loadChatHistory() {
+    const messagesContainer = document.getElementById('chat-messages');
+    
+    // Load recent messages from the session
+    {% for message in recent_messages %}
+        addMessageToChat('{{ message.content|escapejs }}', '{{ message.message_type }}', '{{ message.created_at|date:"c" }}');
+    {% endfor %}
+    
+    scrollToBottom();
+}
+
+function addMessageToChat(content, type, timestamp, referencedArticles = null) {
+    const messagesContainer = document.getElementById('chat-messages');
+    
+    // Remove welcome message if it exists
+    const welcomeMessage = messagesContainer.querySelector('.text-center.text-muted');
+    if (welcomeMessage) {
+        welcomeMessage.remove();
+    }
+    
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `message ${type}`;
+    
+    let messageContent = `<div class="message-content">${content}</div>`;
+    
+    if (referencedArticles && referencedArticles.length > 0) {
+        messageContent += '<div class="referenced-articles">';
+        messageContent += '<h6><i class="fas fa-link me-1"></i>{% trans "Referenced Articles:" %}</h6>';
+        referencedArticles.forEach(article => {
+            messageContent += `<a href="${article.url}" target="_blank">${article.title}</a>`;
+        });
+        messageContent += '</div>';
+    }
+    
+    messageDiv.innerHTML = messageContent;
+    messagesContainer.appendChild(messageDiv);
+    
+    scrollToBottom();
+}
+
+function showTypingIndicator() {
+    const messagesContainer = document.getElementById('chat-messages');
+    const typingDiv = document.createElement('div');
+    typingDiv.className = 'typing-indicator';
+    typingDiv.id = 'typing-indicator';
+    typingDiv.innerHTML = `
+        <div class="typing-dots">
+            <div class="typing-dot"></div>
+            <div class="typing-dot"></div>
+            <div class="typing-dot"></div>
+        </div>
+    `;
+    messagesContainer.appendChild(typingDiv);
+    scrollToBottom();
+}
+
+function hideTypingIndicator() {
+    const typingIndicator = document.getElementById('typing-indicator');
+    if (typingIndicator) {
+        typingIndicator.remove();
+    }
+}
+
+function sendMessage() {
+    const messageInput = document.getElementById('message-input');
+    const sendBtn = document.getElementById('send-btn');
+    const message = messageInput.value.trim();
+    
+    if (!message) return;
+    
+    // Disable input and button
+    messageInput.disabled = true;
+    sendBtn.disabled = true;
+    
+    // Add user message to chat
+    addMessageToChat(message, 'user');
+    
+    // Clear input
+    messageInput.value = '';
+    
+    // Show typing indicator
+    showTypingIndicator();
+    
+    // Send message to server
+    fetch('/chatbot/api/send-message/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: JSON.stringify({
+            message: message
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        hideTypingIndicator();
+        
+        if (data.success) {
+            addMessageToChat(
+                data.bot_response.content, 
+                'bot', 
+                data.bot_response.timestamp,
+                data.bot_response.referenced_articles
+            );
+        } else {
+            addMessageToChat('Sorry, I encountered an error. Please try again.', 'system');
+        }
+    })
+    .catch(error => {
+        hideTypingIndicator();
+        console.error('Error:', error);
+        addMessageToChat('Sorry, I encountered an error. Please try again.', 'system');
+    })
+    .finally(() => {
+        // Re-enable input and button
+        messageInput.disabled = false;
+        sendBtn.disabled = false;
+        messageInput.focus();
+    });
+}
+
+function handleKeyPress(event) {
+    if (event.key === 'Enter') {
+        sendMessage();
+    }
+}
+
+function scrollToBottom() {
+    const messagesContainer = document.getElementById('chat-messages');
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+}
+
+function clearChat() {
+    if (confirm('{% trans "Are you sure you want to clear the chat history?" %}')) {
+        fetch('/chatbot/api/clear-history/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById('chat-messages').innerHTML = `
+                    <div class="text-center text-muted">
+                        <i class="fas fa-robot fa-3x mb-3"></i>
+                        <p>{% trans 'Welcome! I can help you find information from our knowledge base. Ask me anything!' %}</p>
+                    </div>
+                `;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('{% trans "Error clearing chat history" %}');
+        });
+    }
+}
+</script>
+{% endblock content %}

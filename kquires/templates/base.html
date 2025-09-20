@@ -123,6 +123,21 @@ a{
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> 
     <script>
 
+      // Function to get a cookie
+      function getCookie(name) {
+        const decodedCookie = decodeURIComponent(document.cookie);
+        const cookies = decodedCookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+          let cookie = cookies[i];
+          while (cookie.charAt(0) === ' ') {
+            cookie = cookie.substring(1);
+          }
+          if (cookie.indexOf(name + '=') === 0) {
+            return cookie.substring(name.length + 1, cookie.length);
+          }
+        }
+        return '';
+      }
       (function setDirection() {
         const langCode = getCookie('language') || 'en'; // Default to English
         const body = document.body;

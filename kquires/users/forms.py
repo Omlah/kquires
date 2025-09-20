@@ -274,3 +274,61 @@ class SignupForm(BaseSignupForm):
         return user
 
 
+class UserPasswordChangeForm(forms.Form):
+    """Form for users to change their own password"""
+    current_password = forms.CharField(
+        label=_("Current Password"),
+        widget=forms.PasswordInput(attrs={
+            'class': 'form-control',
+            'placeholder': _('Enter your current password')
+        }),
+        required=True
+    )
+    
+    new_password = forms.CharField(
+        label=_("New Password"),
+        widget=forms.PasswordInput(attrs={
+            'class': 'form-control',
+            'placeholder': _('Enter your new password')
+        }),
+        required=True,
+        min_length=8,
+        help_text=_("Password must be at least 8 characters long.")
+    )
+    
+    confirm_password = forms.CharField(
+        label=_("Confirm New Password"),
+        widget=forms.PasswordInput(attrs={
+            'class': 'form-control',
+            'placeholder': _('Confirm your new password')
+        }),
+        required=True
+    )
+    
+    def __init__(self, user, *args, **kwargs):
+        self.user = user
+        super().__init__(*args, **kwargs)
+    
+    def clean_current_password(self):
+        current_password = self.cleaned_data.get('current_password')
+        if not self.user.check_password(current_password):
+            raise forms.ValidationError(_("Current password is incorrect."))
+        return current_password
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        new_password = cleaned_data.get('new_password')
+        confirm_password = cleaned_data.get('confirm_password')
+        
+        if new_password and confirm_password:
+            if new_password != confirm_password:
+                raise forms.ValidationError(_("New passwords don't match."))
+        
+        return cleaned_data
+    
+    def save(self):
+        """Save the new password"""
+        new_password = self.cleaned_data['new_password']
+        self.user.set_password(new_password)
+        self.user.save()
+        return self.user

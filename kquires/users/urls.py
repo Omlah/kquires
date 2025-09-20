@@ -4,7 +4,7 @@ from .views import user_detail_view
 from .views import user_redirect_view
 from .views import user_update_view
 from .views import UserDeleteView
-from .views import LoginView, export_csv, UserProfileView, UserPasswordResetView, UserListView, UserCreateOrUpdateView, UserUploadView, user_detail_api, SignupView
+from .views import LoginView, export_csv, UserProfileView, UserPasswordResetView, UserListView, UserCreateOrUpdateView, UserUploadView, user_detail_api, SignupView, UserPasswordChangeView
 from django.views.generic import TemplateView
 
 from django.conf import settings
@@ -20,6 +20,7 @@ urlpatterns = [
     path("<int:pk>/", view=user_detail_view, name="detail"),
     path("profile/", UserProfileView.as_view(), name="profile"),
     path("password_reset/", UserPasswordResetView.as_view(), name="password_reset"),
+    path("change-password/", UserPasswordChangeView.as_view(), name="change_password"),
     path("list/", UserListView.as_view(), name="list"),
     path("create/", UserCreateOrUpdateView.as_view(), name="create"),
     path('api/detail/<int:id>/', user_detail_api, name='user_detail_api'),

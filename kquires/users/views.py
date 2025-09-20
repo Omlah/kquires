@@ -8,7 +8,7 @@ from django.contrib.auth.hashers import check_password, make_password
 from kquires.users.models import User
 from django.shortcuts import render, redirect
 from django.contrib import messages
-from .forms import UserForm, UserUploadForm
+from .forms import UserForm, UserUploadForm, UserPasswordChangeForm
 from django.shortcuts import get_object_or_404
 from django.urls import reverse_lazy
 from django.http import JsonResponse
@@ -521,3 +521,20 @@ class UserDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     def test_func(self):
         # Only allow deletion if the user is an admin
         return self.request.user.is_authenticated and self.request.user.is_admin
+
+
+class UserPasswordChangeView(LoginRequiredMixin, View):
+    """View for users to change their own password"""
+    template_name = 'users/password_change.html'
+    
+    def get(self, request):
+        form = UserPasswordChangeForm(user=request.user)
+        return render(request, self.template_name, {'form': form})
+    
+    def post(self, request):
+        form = UserPasswordChangeForm(user=request.user, data=request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, _('Your password has been changed successfully.'))
+            return redirect('users:detail', pk=request.user.pk)
+        return render(request, self.template_name, {'form': form})

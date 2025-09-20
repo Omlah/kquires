@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load i18n %}
+{% load article_filters %}
 {% block title %}
       kquires | {% trans 'Article'%}
 {% endblock title %}
@@ -37,190 +38,156 @@
         text-decoration: underline;
     }
     .content-body .uploaded-image{
-
         margin: 25px;
         margin-left: 50px;
         border-bottom: 1px solid rgb(211, 208, 208);
-        }
+    }
     .content-body p{
         margin-left: 10px;
-}
+    }
     .content-body img {
         max-width: 100%;
         height: auto;
         border-radius: 5px;
     }
-
-
-.content-body .carousel-control-next {
-    top:30%;
-    width: 42px;
-    height: 42px; /* Make buttons larger */
-    background-image: url("{% static 'images/right_arrow.svg' %}") !important;
-    background-repeat: no-repeat !important;
-    background-position: center !important;
-    background-size: contain !important;
-
-}
-
-.content-body .carousel-control-prev{
-    top:30%;
-    width: 42px;
-    height: 42px; /* Make buttons larger */
-
-    background-image: url("{% static 'images/left_arrow.svg' %}") !important;
-    background-repeat: no-repeat !important;
-    background-position: center !important;
-    background-size: contain !important;
-}
-
-/* Customize the Previous Button */
-
-.content-body .carousel-control-prev-icon {
-    background-image: url("{% static 'images/left_arrow.svg' %}") !important;
-}
-
-/* Customize the Next Button */
-.content-body .carousel-control-next-icon {
-    background-image: url('/static/images/right_arrow.svg'); /* Replace with your custom arrow */
-}
-
-/* Modify Image Size */
-.content-body .carousel-inner img {
-    width: 110%;  /* Ensure full width */
-    height: 500px; /* Set custom height */
-    object-fit: contain; /* Maintain aspect ratio */
-    border-radius: 5px;
-}
-
-.sidebar-headings > li {
-  margin-bottom: 0 !important;
-}
-.sidebar-link > p {
-  font-size:17px;
-  margin-bottom: 0;
-}
-.sidebar-link.active {
-  font-weight: bold;
-  color: #A94BEA;
-}
-
-html {
-  scroll-behavior: smooth;
-}
+    .content-body .carousel-control-next {
+        top:30%;
+        width: 42px;
+        height: 42px;
+        background-image: url("{% static 'images/right_arrow.svg' %}") !important;
+        background-repeat: no-repeat !important;
+        background-position: center !important;
+        background-size: contain !important;
+    }
+    .content-body .carousel-control-prev{
+        top:30%;
+        width: 42px;
+        height: 42px;
+        background-image: url("{% static 'images/left_arrow.svg' %}") !important;
+        background-repeat: no-repeat !important;
+        background-position: center !important;
+        background-size: contain !important;
+    }
+    .content-body .carousel-control-prev-icon {
+        background-image: url("{% static 'images/left_arrow.svg' %}") !important;
+    }
+    .content-body .carousel-control-next-icon {
+        background-image: url('/static/images/right_arrow.svg');
+    }
+    .content-body .carousel-inner img {
+        width: 110%;
+        height: 500px;
+        object-fit: contain;
+        border-radius: 5px;
+    }
+    .sidebar-headings > li {
+      margin-bottom: 0 !important;
+    }
+    .sidebar-link > p {
+      font-size:17px;
+      margin-bottom: 0;
+    }
+    .sidebar-link.active {
+      font-weight: bold;
+      color: #A94BEA;
+    }
+    html {
+      scroll-behavior: smooth;
+    }
 </style>
 
 <div>
     {% include 'dashboard/partials/searchbar.html' %}
 </div>
+
 <div class="container my-5">
-    <!--
-        <p><strong>Category:</strong> {{ article.category.name }}</p>
-    <p><strong>Departments Count:</strong> {{ article.category.departments.count }}</p>
-    <p><strong>Departments List:</strong></p>
-    <ul>
-        {% for department in article.category.departments.all %}
-            <li>{{ department.name }}</li>
-        {% empty %}
-            <li>No department assigned</li>
-        {% endfor %}
-    </ul> -->
-
     <div class="content-header bg-white p-3 rounded shadow-sm">
-        <div class="d-flex justify-content-start align-items-center text-muted">
-            <!-- First Item: Article Details -->
-            <div class="d-flex align-items-center me-4">
-                <span>{% trans "Articles Details:" %}</span>
+        <div class="d-flex justify-content-between align-items-center">
+            <div class="d-flex justify-content-start align-items-center text-muted">
+                <!-- First Item: Article Details -->
+                <div class="d-flex align-items-center me-4">
+                    <span>{% trans "Articles Details:" %}</span>
+                </div>
+
+                <!-- Second Item: Article Title -->
+                <div class="d-flex align-items-center me-4">
+                    <img src="{% static 'images/userming.svg' %}" alt="{% trans 'User Icon' %}" class="ms-2" style="margin-right: 5px;" >
+                    <span id="article-title">{{ article_title }}</span>
+                </div>
+
+                <!-- Third Item: User -->
+                <div class="d-flex align-items-center me-4">
+                    <img src="{% static 'images/userming.svg' %}" alt="{% trans 'User Icon' %}" class="ms-2" style="margin-right: 5px;" >
+                    <span>{{ article.user.name }}</span>
+                </div>
             </div>
 
-            <!-- Second Item: Article Title -->
-            <div class="d-flex align-items-center me-4">
-                <img src="{% static 'images/userming.svg' %}" alt="{% trans 'User Icon' %}" class="ms-2"style="margin-right: 5px;" >
-                <!-- <span>{% trans "Users" %}</span> -->
-                <span>{{article.title}}</span>
-            </div>
-
-            <!-- Third Item: User -->
-            <div class="d-flex align-items-center me-4">
-                <img src="{% static 'images/userming.svg' %}" alt="{% trans 'User Icon' %}" class="ms-2"style="margin-right: 5px;" >
-                <!-- <span>{% trans "Users" %}</span> -->
-                <span>{{article.user.name}}</span>
-            </div>
-
-            <!-- Third Item: Section Name -->
-            <div class="d-flex align-items-center me-4">
-                <img src="{% static 'images/category_disabled.svg' %}" alt="{% trans 'Section Icon' %}" class="ms-2" style="height: 24px;width: 22px;margin-right: 5px;" >
-                <span>{{article.category}}</span>
-            </div>
-
-
-            <!-- Fourth Item: Time -->
+            <!-- Language Switcher -->
             <div class="d-flex align-items-center">
-                <img src="{% static 'images/time.svg' %}" alt="{% trans 'Clock Icon' %}" class="ms-2"style="margin-right: 5px;" >
-                <!-- <span>{% trans "Time" %}</span> -->
-                <span>{{article.created_at}}</span>
+                <span class="me-2">{% trans "Language:" %}</span>
+                <div class="btn-group" role="group">
+                    <button type="button" class="btn btn-outline-primary btn-sm" onclick="switchLanguage('{{ article.language }}')" id="current-lang-btn">
+                        {% if article.language == 'english' %}🇺🇸 English{% else %}🇸🇦 العربية{% endif %}
+                    </button>
+                    {% if article.get_translations %}
+                    <button type="button" class="btn btn-outline-secondary btn-sm" onclick="switchLanguage('{{ article.get_translations.0.language }}')" id="other-lang-btn">
+                        {% if article.language == 'english' %}🇸🇦 العربية{% else %}🇺🇸 English{% endif %}
+                    </button>
+                    {% endif %}
+                </div>
             </div>
-            <div class="d-flex align-items-center ms-auto">
-                <img src="{% static 'images/view_count.svg' %}" alt="{% trans 'Clock Icon' %}" class="ms-2" style="margin-right: 5px;" >
-                <!-- <span>{% trans "Time" %}</span> -->
-                <span>{{article.click_count}}</span>
-            </div>
-
         </div>
-
     </div>
-
 
     <div class="row">
-    <div class="col-md-4 col-lg-3 border-dark border-end" >
-      <div style="position: sticky; top: 20px; z-index: 999;">
-        <!-- First Sidebar -->
-        <div class="sidebar mb-4" style="background-color: #D9E8F1;">
-          <h6 class="d-flex align-items-center">
-              <img src="{% static 'images/sec1.svg' %}" alt="{% trans 'Logo' %}" style="width: 20px; height: 20px; margin-right: 8px;">
-              {% trans "On This Page" %}
-          </h6>
-          <ul id="sidebar-headings">
-              {% for heading in article.brief_description|extract_h1 %}
-                  <li>
-                      <a href="#heading-{{ forloop.counter }}" class="sidebar-link" data-target="heading-{{ forloop.counter }}">
-                          {{ heading|safe }}
-                      </a>
-                  </li>
-              {% endfor %}
-          </ul>
-      </div>
+        <!-- Sidebar -->
+        <div class="col-md-4 col-lg-3 border-dark border-end">
+            <div style="position: sticky; top: 20px; z-index: 999;">
+                <div class="sidebar mb-4" style="background-color: #D9E8F1;">
+                    <h6 class="d-flex align-items-center">
+                        <img src="{% static 'images/sec1.svg' %}" alt="{% trans 'Logo' %}" style="width: 20px; height: 20px; margin-right: 8px;">
+                        {% trans "On This Page" %}
+                    </h6>
+                    <ul id="sidebar-headings">
+                        {% for heading in article.brief_description|extract_h1 %}
+                            <li>
+                                <a href="#heading-{{ forloop.counter }}" class="sidebar-link" data-target="heading-{{ forloop.counter }}">
+                                    {{ heading|safe }}
+                                </a>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
 
+                <div class="sidebar" style="background-color: #F1DCDC;">
+                    <h6 class="d-flex align-items-center mb-3">
+                        <img src="{% static 'images/sec2.svg' %}" alt="{% trans 'Logo' %}" style="width: 20px; height: 20px; margin-right: 8px;">
+                        {% trans "Related Articles" %}
+                    </h6>
+                    <ul>
+                        {% for related_article in related_articles %}
+                            <li><a href="{% url 'article_detail' related_article.id %}">{{ related_article.title }}</a></li>
+                        {% empty %}
+                            <li>{% trans "No related articles found" %}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
 
-      <!-- Second Sidebar -->
-      <div class="sidebar" style="background-color: #F1DCDC;">
-          <h6 class="d-flex align-items-center mb-3">
-              <img src="{% static 'images/sec2.svg' %}" alt="{% trans 'Logo' %}" style="width: 20px; height: 20px; margin-right: 8px;">
-              {% trans "Related Articles" %}
-          </h6>
-          <ul>
-              {% for related_article in related_articles %}
-                  <li><a href="{% url 'article_detail' related_article.id %}">{{ related_article.title }}</a></li>
-              {% empty %}
-                  <li>{% trans "No related articles found" %}</li>
-              {% endfor %}
-          </ul>
-      </div>
+        <!-- Content -->
+        <div class="col-md-8 col-lg-9">
+            <div class="content-body" id="article-content">
+                {{ article_brief_description|safe }}
+            </div>
+            <button type="button" class="btn btn-primary" id="copy-url-btn">
+                {% trans "Copy Link" %}
+            </button>
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#smsModal">
+                {% trans "Share By SMS" %}
+            </button>
         </div>
     </div>
-
-    <!-- Content -->
-    <div class="col-md-8 col-lg-9">
-      <div class="content-body">
-          {{ article.brief_description|safe }}
-      </div>
-      <button type="button" class="btn btn-primary" id="copy-url-btn">
-          {% trans "Copy Link" %}
-      </button>
-      <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#smsModal">
-          {% trans "Share By SMS" %}
-      </button>
-  </div>
 </div>
 
 <!-- SMS Modal -->
@@ -247,9 +214,6 @@ html {
     </div>
 </div>
 
-
-
-
 <script>
   document.getElementById("copy-url-btn").addEventListener("click", function () {
       const currentURL = window.location.href;
@@ -265,9 +229,7 @@ html {
       const phoneNumber = document.getElementById("phoneNumber").value;
       const currentURL = window.location.href;
       if (phoneNumber) {
-          // Implement your SMS sending logic here
           alert(`SMS sent to ${phoneNumber} with the link: ${currentURL}`);
-          // Close the modal
           const smsModal = new bootstrap.Modal(document.getElementById('smsModal'));
           smsModal.hide();
       } else {
@@ -279,40 +241,27 @@ html {
     const headings = document.querySelectorAll(".content-body h1, .content-body h2, .content-body h3, .content-body h4, .content-body h5, .content-body h6");
     const sidebarLinks = document.querySelectorAll(".sidebar-link");
 
-    // Add click event listeners to sidebar links
     sidebarLinks.forEach((link, index) => {
         link.addEventListener("click", function (e) {
-            e.preventDefault(); // Prevent default anchor behavior
-
-            // Find the corresponding heading
+            e.preventDefault();
             const targetHeading = headings[index];
-
             if (targetHeading) {
-                // Smooth scroll to the heading
-                targetHeading.scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'start'
-                });
+                targetHeading.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
         });
     });
 
-    // Existing highlighting functionality
     function highlightCurrentHeading() {
         let index = -1;
-
         headings.forEach((heading, i) => {
             const rect = heading.getBoundingClientRect();
             if (rect.top >= 0 && rect.top < window.innerHeight / 2) {
                 index = i;
             }
         });
-
-        // Ensure the last heading is highlighted when scrolling near the bottom
         if (window.scrollY + window.innerHeight >= document.body.scrollHeight - 5) {
             index = headings.length - 1;
         }
-
         sidebarLinks.forEach((link) => link.classList.remove("active"));
         if (index !== -1) {
             sidebarLinks[index].classList.add("active");
@@ -321,8 +270,12 @@ html {
 
     window.addEventListener("scroll", highlightCurrentHeading);
     highlightCurrentHeading();
-});
-</script>
-</div>
 
+    // Language switching
+    window.switchLanguage = function (language) {
+        document.cookie = `language=${language === 'arabic' ? 'ar' : 'en'}; path=/`;
+        window.location.reload();
+    }
+  });
+</script>
 {% endblock content %}

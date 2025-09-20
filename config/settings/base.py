@@ -98,6 +98,7 @@ LOCAL_APPS = [
     "kquires.logs",
     "kquires.departments",
     "kquires.notifications",
+    "kquires.chatbot",
 
     # Your stuff: custom apps go here
 ]
@@ -206,6 +207,7 @@ TEMPLATES = [
                 "django.template.context_processors.tz",
                 "django.contrib.messages.context_processors.messages",
                 "kquires.users.context_processors.allauth_settings",
+                "kquires.articles.context_processors.current_language",
             ],
         },
     },
@@ -277,8 +279,11 @@ LOGGING = {
     "root": {"level": "INFO", "handlers": ["console"]},
 }
 
-REDIS_URL = env("REDIS_URL", default="redis://redis:6379/0")
+# Prefer docker redis, fallback to localhost if not available
+REDIS_URL = env("REDIS_URL", default="redis://redis:6379/0") or "redis://localhost:6379/0"
+
 REDIS_SSL = REDIS_URL.startswith("rediss://")
+
 
 # Celery
 # ------------------------------------------------------------------------------
@@ -286,11 +291,15 @@ if USE_TZ:
     # https://docs.celeryq.dev/en/stable/userguide/configuration.html#std:setting-timezone
     CELERY_TIMEZONE = TIME_ZONE
 # https://docs.celeryq.dev/en/stable/userguide/configuration.html#std:setting-broker_url
-CELERY_BROKER_URL = REDIS_URL
+# Celery Broker URL (fallback to memory if Redis is not available)
+CELERY_BROKER_URL = env("CELERY_BROKER_URL", default=REDIS_URL or "memory://")
+
 # https://docs.celeryq.dev/en/stable/userguide/configuration.html#redis-backend-use-ssl
 CELERY_BROKER_USE_SSL = {"ssl_cert_reqs": ssl.CERT_NONE} if REDIS_SSL else None
-# https://docs.celeryq.dev/en/stable/userguide/configuration.html#std:setting-result_backend
-CELERY_RESULT_BACKEND = REDIS_URL
+
+# Celery Result Backend (fallback to memory if Redis is not available)
+CELERY_RESULT_BACKEND = env("CELERY_RESULT_BACKEND", default=REDIS_URL or "cache+memory://")
+
 # https://docs.celeryq.dev/en/stable/userguide/configuration.html#redis-backend-use-ssl
 CELERY_REDIS_BACKEND_USE_SSL = CELERY_BROKER_USE_SSL
 # https://docs.celeryq.dev/en/stable/userguide/configuration.html#result-extended
@@ -320,6 +329,14 @@ CELERY_WORKER_SEND_TASK_EVENTS = True
 CELERY_TASK_SEND_SENT_EVENT = True
 # https://cheat.readthedocs.io/en/latest/django/celery.html
 CELERYD_HIJACK_ROOT_LOGGER = False
+
+CELERY_BEAT_SCHEDULE = {
+    'cleanup-inactive-users': {
+        'task': 'kquires.articles.tasks.cleanup_inactive_users',
+        'schedule': 60.0 * 60.0 * 24.0,  # Run daily
+    },
+}
+
 # django-allauth
 # ------------------------------------------------------------------------------
 ACCOUNT_ALLOW_REGISTRATION = env.bool("DJANGO_ACCOUNT_ALLOW_REGISTRATION", True)
@@ -389,5 +406,11 @@ CKEDITOR_CONFIGS = {
     }
 }
 
+# AI Configuration
+# ------------------------------------------------------------------------------
+OPENAI_API_KEY = env("OPENAI_API_KEY", default="")
+OPENAI_MODEL = env("OPENAI_MODEL", default="gpt-4o-mini")
+OPENAI_MAX_TOKENS = env.int("OPENAI_MAX_TOKENS", default=4000)
+OPENAI_TEMPERATURE = env.float("OPENAI_TEMPERATURE", default=0.3)
 # Your stuff...
 # ------------------------------------------------------------------------------
