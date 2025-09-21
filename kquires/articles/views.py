@@ -239,7 +239,6 @@ def article_detail_api(request, id):
     """Return article in correct language, fallback if not available"""
     article = get_object_or_404(Article, id=id)
     requested_lang = request.GET.get('language', 'english')
-    
     # Get the main article (parent or self)
     main_article = article.parent_article if article.parent_article else article
     

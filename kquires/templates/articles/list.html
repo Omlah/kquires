@@ -172,16 +172,16 @@
               
               // Create alert inside modal
               const alertDiv = document.createElement('div')
-              alertDiv.className = 'alert alert-warning alert-dismissible fade show translation-alert'
-              alertDiv.innerHTML = `
-                <strong><i class="fas fa-language"></i> Translation to ${language} Unavailable</strong><br>
-                ${data.translation_message || 'The AI translation service is currently not available. Please check your OpenAI API key configuration.'}<br>
-                <small class="text-muted">You can still edit the article in ${data.language} language.</small><br>
-                <button type="button" class="btn btn-sm btn-outline-primary mt-2" onclick="testTranslationService()">
-                  <i class="fas fa-test-tube"></i> Test Translation Service
-                </button>
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-              `
+              // alertDiv.className = 'alert alert-warning alert-dismissible fade show translation-alert'
+              // alertDiv.innerHTML = `
+              //   <strong><i class="fas fa-language"></i> Translation to ${language} Unavailable</strong><br>
+              //   ${data.translation_message || 'The AI translation service is currently not available. Please check your OpenAI API key configuration.'}<br>
+              //   <small class="text-muted">You can still edit the article in ${data.language} language.</small><br>
+              //   <button type="button" class="btn btn-sm btn-outline-primary mt-2" onclick="testTranslationService()">
+              //     <i class="fas fa-test-tube"></i> Test Translation Service
+              //   </button>
+              //   <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+              // `
               
               // Insert at the top of modal body
               modalBody.insertBefore(alertDiv, modalBody.firstChild)

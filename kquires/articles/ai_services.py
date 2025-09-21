@@ -218,7 +218,7 @@ class AIService:
         """Translate content between languages with technical term preservation"""
         try:
             
-            if not text or len(text.strip()) < 10:
+            if not text or len(text.strip()) < 1:
                 return {"error": "No content to translate"}
             
             # Prepare technical terms preservation instruction
