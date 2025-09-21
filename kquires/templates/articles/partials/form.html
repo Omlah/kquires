@@ -130,6 +130,14 @@
               <div class="invalid-feedback">{% trans 'Please select a category.' %}</div>
             </div>
 
+            <!-- Subcategory -->
+            <div class="mb-3 col-md-6">
+              <label for="subcategory" class="form-label">{% trans 'Subcategory' %}</label>
+              <select class="form-select" name="subcategory" id="subcategory">
+                <option value="" selected>{% trans 'Select Subcategory' %}</option>
+              </select>
+            </div>
+
             <!-- Attachment -->
             <div class="mb-3 col-md-6">
               <label for="attachment" class="form-label">{% trans 'Add Attachment' %}</label>

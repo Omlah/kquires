@@ -124,14 +124,32 @@
       document.getElementById('id').value = ''
       document.getElementById('title').value = ''
       document.getElementById('category').value = ''
+      document.getElementById('subcategory').value = ''
       document.getElementById('short_description').value = ''
-      CKEDITOR.instances['brief_description'].setData('')
+      if (window.briefDescriptionEditor) {
+        window.briefDescriptionEditor.setData('')
+      } else {
+        // Fallback for textarea
+        const textarea = document.querySelector('#brief_description')
+        if (textarea) {
+          textarea.value = ''
+        }
+      }
     })
 
     // 🌍 Multi-language state
     window.currentArticleId = null;
     window.mainArticleId = null;
     window.currentLanguage = 'english';
+
+    // 🌍 Language switching function
+    window.switchArticleLanguage = function(language) {
+      if (window.mainArticleId) {
+        window.fetchArticleDetails(window.mainArticleId, language);
+      } else if (window.currentArticleId) {
+        window.fetchArticleDetails(window.currentArticleId, language);
+      }
+    };
 
     // 🌍 Fetch article with optional language param
     window.fetchArticleDetails = function(articleId, language = 'english') {
@@ -141,6 +159,145 @@
       fetch(`{% url 'articles:article_detail_api' '000' %}`.replace('000', articleId) + `?language=${language}`)
         .then((response) => response.json())
         .then((data) => {
+          // Check if translation is in progress or not translated
+          if ((data.translation_status === 'translation_in_progress' || data.translation_status === 'not_translated') && data.translation_message) {
+            // Show alert inside the modal
+            const modalBody = document.querySelector('#newArticleModal .modal-body')
+            if (modalBody) {
+              // Remove any existing alerts
+              const existingAlert = modalBody.querySelector('.translation-alert')
+              if (existingAlert) {
+                existingAlert.remove()
+              }
+              
+              // Create alert inside modal
+              const alertDiv = document.createElement('div')
+              alertDiv.className = 'alert alert-warning alert-dismissible fade show translation-alert'
+              alertDiv.innerHTML = `
+                <strong><i class="fas fa-language"></i> Translation to ${language} Unavailable</strong><br>
+                ${data.translation_message || 'The AI translation service is currently not available. Please check your OpenAI API key configuration.'}<br>
+                <small class="text-muted">You can still edit the article in ${data.language} language.</small><br>
+                <button type="button" class="btn btn-sm btn-outline-primary mt-2" onclick="testTranslationService()">
+                  <i class="fas fa-test-tube"></i> Test Translation Service
+                </button>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+              `
+              
+              // Insert at the top of modal body
+              modalBody.insertBefore(alertDiv, modalBody.firstChild)
+              
+              // Auto-remove after 8 seconds
+              setTimeout(() => {
+                if (alertDiv.parentNode) {
+                  alertDiv.remove()
+                }
+              }, 8000)
+            }
+            
+            // Fill the form with original content (not placeholder text)
+            document.getElementById('id').value = data.id
+            document.getElementById('title').value = data.title
+            document.getElementById('short_description').value = data.short_description
+            document.getElementById('current_language').value = data.current_language
+
+            window.currentArticleId = data.id
+            window.mainArticleId = data.main_id
+
+            // Initialize CKEDITOR 5 for the original content
+            if (window.briefDescriptionEditor) {
+              window.briefDescriptionEditor.destroy()
+            }
+
+            if (typeof ClassicEditor !== 'undefined') {
+              ClassicEditor
+                .create(document.querySelector('#brief_description'), {
+                  toolbar: {
+                    items: [
+                      'heading', '|',
+                      'bold', 'italic', 'link', '|',
+                      'bulletedList', 'numberedList', '|',
+                      'outdent', 'indent', '|',
+                      'imageUpload', 'blockQuote', 'insertTable', '|',
+                      'undo', 'redo'
+                    ]
+                  },
+                  language: 'en',
+                  image: {
+                    toolbar: [
+                      'imageTextAlternative',
+                      'imageStyle:full',
+                      'imageStyle:side'
+                    ]
+                  },
+                  table: {
+                    contentToolbar: [
+                      'tableColumn',
+                      'tableRow',
+                      'mergeTableCells'
+                    ]
+                  }
+                })
+                .then(editor => {
+                  window.briefDescriptionEditor = editor;
+                  editor.setData(data.brief_description || '');
+                })
+                .catch(error => {
+                  console.error('Error initializing CKEDITOR:', error);
+                  document.querySelector('#brief_description').value = data.brief_description || '';
+                });
+            } else {
+              document.querySelector('#brief_description').value = data.brief_description || '';
+            }
+
+            // ✅ Category selection
+            const categorySelect = document.getElementById('category')
+            if (categorySelect && data.category_id) {
+              categorySelect.value = data.category_id
+              // Load subcategories for selected category
+              loadSubcategories(data.category_id, data.subcategory_id)
+            }
+
+            // 🌍 Update language switcher UI
+            const languageSwitcher = document.getElementById('languageSwitcher');
+            if (languageSwitcher) {
+              languageSwitcher.style.display = 'block';
+              const languageDropdown = document.getElementById('languageDropdown');
+              if (languageDropdown) {
+                languageDropdown.innerHTML = data.current_language === 'english' ? '🇺🇸 English' : '🇸🇦 العربية';
+              }
+              const viewEnglish = document.getElementById('viewEnglish');
+              const viewArabic = document.getElementById('viewArabic');
+              if (viewEnglish && viewArabic) {
+                if (!data.has_arabic) {
+                  viewArabic.innerHTML = '🇸🇦 العربية +';
+                  viewArabic.title = '{% trans "Create Arabic translation" %}';
+                } else {
+                  viewArabic.innerHTML = '🇸🇦 العربية';
+                  viewArabic.title = '{% trans "View in Arabic" %}';
+                }
+                viewEnglish.innerHTML = '🇺🇸 English';
+                viewEnglish.title = '{% trans "View in English" %}';
+              }
+            }
+
+            // Modal title with language
+            const modalTitle = document.getElementById('newArticleModalLabel');
+            if (modalTitle) {
+              modalTitle.innerHTML = `{% trans 'View Article' %} <small class="text-muted">(${data.current_language})</small>`;
+            }
+
+            var modal = new bootstrap.Modal(document.getElementById('newArticleModal'), {
+              backdrop: true,
+              keyboard: true,
+              focus: true
+            })
+            modal.show()
+            
+            // Don't continue with the rest of the function
+            return
+          }
+
+          // Normal flow for successful translations
           document.getElementById('id').value = data.id
           document.getElementById('title').value = data.title
           document.getElementById('short_description').value = data.short_description
@@ -149,28 +306,60 @@
           window.currentArticleId = data.id
           window.mainArticleId = data.main_id
 
-          if (CKEDITOR.instances.brief_description) {
-            CKEDITOR.instances.brief_description.destroy()
+          // Initialize CKEDITOR 5
+          if (window.briefDescriptionEditor) {
+            window.briefDescriptionEditor.destroy()
           }
 
-          CKEDITOR.replace('brief_description', {
-            height: 300,
-            allowedContent: true,
-            extraAllowedContent: 'img[*]{*}; p[*]{*}; figure[*]{*}; figcaption[*]{*};'
-          })
-
-          setTimeout(() => {
-            CKEDITOR.instances.brief_description.setData(data.brief_description)
-          }, 500)
+          if (typeof ClassicEditor !== 'undefined') {
+            ClassicEditor
+              .create(document.querySelector('#brief_description'), {
+                toolbar: {
+                  items: [
+                    'heading', '|',
+                    'bold', 'italic', 'link', '|',
+                    'bulletedList', 'numberedList', '|',
+                    'outdent', 'indent', '|',
+                    'imageUpload', 'blockQuote', 'insertTable', '|',
+                    'undo', 'redo'
+                  ]
+                },
+                language: 'en',
+                image: {
+                  toolbar: [
+                    'imageTextAlternative',
+                    'imageStyle:full',
+                    'imageStyle:side'
+                  ]
+                },
+                table: {
+                  contentToolbar: [
+                    'tableColumn',
+                    'tableRow',
+                    'mergeTableCells'
+                  ]
+                }
+              })
+              .then(editor => {
+                window.briefDescriptionEditor = editor;
+                editor.setData(data.brief_description || '');
+              })
+              .catch(error => {
+                console.error('Error initializing CKEDITOR:', error);
+                // Fallback to textarea
+                document.querySelector('#brief_description').value = data.brief_description || '';
+              });
+          } else {
+            console.warn('CKEDITOR not loaded, using textarea fallback');
+            document.querySelector('#brief_description').value = data.brief_description || '';
+          }
 
           // ✅ Category selection
           const categorySelect = document.getElementById('category')
-          const options = categorySelect.options
-          for (let i = 0; i < options.length; i++) {
-            if (options[i].text === data.category || options[i].value === data.category) {
-              categorySelect.selectedIndex = i
-              break
-            }
+          if (categorySelect && data.category_id) {
+            categorySelect.value = data.category_id
+            // Load subcategories for selected category
+            loadSubcategories(data.category_id, data.subcategory_id)
           }
 
           // 🌍 Update language switcher UI
@@ -202,7 +391,11 @@
             modalTitle.innerHTML = `{% trans 'View Article' %} <small class="text-muted">(${data.current_language})</small>`;
           }
 
-          var modal = new bootstrap.Modal(document.getElementById('newArticleModal'))
+          var modal = new bootstrap.Modal(document.getElementById('newArticleModal'), {
+            backdrop: true,
+            keyboard: true,
+            focus: true
+          })
           modal.show()
         })
         .catch((error) => console.error('Error fetching article details:', error))
@@ -216,6 +409,10 @@
 
     function setStatusModalData(targetId, status) {
       const form = document.getElementById('statusUpdateForm')
+      if (!form) {
+        console.error('Status update form not found');
+        return;
+      }
       const actionUrl = `{% url 'articles:status' '000' %}`.replace('000', targetId)
       form.action = actionUrl
 
@@ -242,6 +439,57 @@
         form.appendChild(visibilityInput)
       }
       visibilityInput.value = visibility
+    }
+
+    // Load subcategories based on selected category
+    function loadSubcategories(categoryId, selectedSubcategoryId = null) {
+      const subcategorySelect = document.getElementById('subcategory')
+      if (!subcategorySelect) return
+      
+      // Clear existing options
+      subcategorySelect.innerHTML = '<option value="" selected>{% trans "Select Subcategory" %}</option>'
+      
+      if (!categoryId) return
+      
+      // Fetch subcategories via AJAX
+      fetch(`/categories/api/subcategories/${categoryId}/`)
+        .then(response => response.json())
+        .then(data => {
+          data.subcategories.forEach(subcategory => {
+            const option = document.createElement('option')
+            option.value = subcategory.id
+            option.textContent = subcategory.name
+            if (selectedSubcategoryId && subcategory.id == selectedSubcategoryId) {
+              option.selected = true
+            }
+            subcategorySelect.appendChild(option)
+          })
+        })
+        .catch(error => {
+          console.error('Error loading subcategories:', error)
+        })
+    }
+    
+    // Handle category change
+    document.getElementById('category').addEventListener('change', function() {
+      const categoryId = this.value
+      loadSubcategories(categoryId)
+    })
+
+    // Test translation service
+    window.testTranslationService = function() {
+      fetch('/articles/api/test-translation/')
+        .then(response => response.json())
+        .then(data => {
+          if (data.status === 'success') {
+            alert('✅ Translation service is working!\n\nTest translation: "' + data.translation_result.translated_text + '"')
+          } else {
+            alert('❌ Translation service failed:\n\n' + data.message + '\n\nPlease check your OpenAI API key configuration.')
+          }
+        })
+        .catch(error => {
+          alert('❌ Error testing translation service:\n\n' + error.message)
+        })
     }
 
     // File drop/upload handlers (unchanged)
@@ -303,8 +551,15 @@
                   imgWrapper.classList.add('uploaded-image')
                   imgWrapper.appendChild(img)
                   setTimeout(() => {
-                    let element = CKEDITOR.dom.element.createFromHtml(imgWrapper.outerHTML)
-                    CKEDITOR.instances.brief_description.insertElement(element)
+                    if (window.briefDescriptionEditor) {
+                      window.briefDescriptionEditor.model.change(writer => {
+                        const imageElement = writer.createElement('imageBlock', {
+                          src: img.src,
+                          alt: 'Uploaded Image'
+                        });
+                        writer.insert(imageElement, window.briefDescriptionEditor.model.document.getRoot());
+                      });
+                    }
                   }, 300)
                 }
               } else if (data.video_url && /\.(mp4|webm|ogg)$/i.test(data.video_url)) {
@@ -320,11 +575,25 @@
                 videoWrapper.classList.add('uploaded-video')
                 videoWrapper.appendChild(video)
                 setTimeout(() => {
-                  let element = CKEDITOR.dom.element.createFromHtml(videoWrapper.outerHTML)
-                  CKEDITOR.instances.brief_description.insertElement(element)
+                  if (window.briefDescriptionEditor) {
+                    window.briefDescriptionEditor.model.change(writer => {
+                      const htmlElement = writer.createElement('htmlEmbed', {
+                        html: videoWrapper.outerHTML
+                      });
+                      writer.insert(htmlElement, window.briefDescriptionEditor.model.document.getRoot());
+                    });
+                  }
                 }, 300)
               } else if (data.content) {
-                CKEDITOR.instances.brief_description.insertHtml(`<p><strong>Extracted Content:</strong> </p><p>${data.content.replace(/\n/g, '<br>')}</p>`)
+                if (window.briefDescriptionEditor) {
+                  window.briefDescriptionEditor.model.change(writer => {
+                    const contentHtml = `<p><strong>Extracted Content:</strong> </p><p>${data.content.replace(/\n/g, '<br>')}</p>`;
+                    const htmlElement = writer.createElement('htmlEmbed', {
+                      html: contentHtml
+                    });
+                    writer.insert(htmlElement, window.briefDescriptionEditor.model.document.getRoot());
+                  });
+                }
               }
             } catch (error) {
               console.error('Error uploading file:', error)

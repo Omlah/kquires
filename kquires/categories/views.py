@@ -126,6 +126,21 @@ def category_detail_api(request, id):
         'parent_category': parent_category,
     })
 
+def subcategories_api(request, category_id):
+    """API endpoint to get subcategories for a given category"""
+    try:
+        subcategories = Category.objects.filter(
+            parent_category_id=category_id,
+            type='Sub',
+            status='approved'
+        ).values('id', 'name')
+        
+        return JsonResponse({
+            'subcategories': list(subcategories)
+        })
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)
+
 class CategoryDeleteView(LoginRequiredMixin, DeleteView):
     model = Category
     success_url = reverse_lazy('categories:list')

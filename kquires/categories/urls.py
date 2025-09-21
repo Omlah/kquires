@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import CategoryListView, CategoryCreateOrUpdateView, CategoryDeleteView, CategoryStatusView, CategoryVisibilityView, category_detail_api, export_csv
+from .views import CategoryListView, CategoryCreateOrUpdateView, CategoryDeleteView, CategoryStatusView, CategoryVisibilityView, category_detail_api, subcategories_api, export_csv
 from django.views.generic import TemplateView
 from django.conf import settings
 from django.conf.urls.static import static
@@ -12,6 +12,7 @@ urlpatterns = [
     path("status/<int:id>/", CategoryStatusView.as_view(), name="status"),
     path('visibility/<int:id>/', CategoryVisibilityView.as_view(), name='visibility'),
     path('api/detail/<int:id>/', category_detail_api, name='category_detail_api'),
+    path('api/subcategories/<int:category_id>/', subcategories_api, name='subcategories_api'),
     path('export/', export_csv, name='export_csv'),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_UPLOADS)
  
