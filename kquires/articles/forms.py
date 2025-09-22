@@ -4,9 +4,10 @@ from .models import Article
 class ArticleForm(forms.ModelForm):
     class Meta:
         model = Article
-        fields = ['title', 'attachment', 'category', 'short_description', 'brief_description', 'user', 'created_at']
+        fields = ['title', 'attachment', 'category', 'subcategory', 'short_description', 'brief_description', 'user', 'created_at']
         widgets = {
             'category': forms.Select(attrs={'required': True}),
+            'subcategory': forms.Select(attrs={'required': False}),
         }
     
     def __init__(self, *args, **kwargs):
