@@ -109,11 +109,7 @@ class ChatbotAIService:
         
         if not self.client:
             print(f"❌ No OpenAI client available for chatbot")
-            return {
-                "response": "I'm sorry, but the AI service is currently unavailable. Please try again later.",
-                "referenced_articles": [],
-                "ai_analysis": {"error": "AI client not available"}
-            }
+            return self._generate_improved_fallback_response(user_message, context_articles)
 
         try:
             # Prepare context from articles
@@ -227,3 +223,36 @@ Please provide a helpful response based on the available information. If you ref
                 "referenced_articles": [],
                 "ai_analysis": {"error": str(e)}
             }
+
+    def _generate_improved_fallback_response(self, user_message: str, context_articles: List[Article] = None) -> Dict:
+        """Generate improved fallback response when AI is not available"""
+        
+        if context_articles and len(context_articles) > 0:
+            response = f"I found {len(context_articles)} relevant article(s) that might help you:\n\n"
+            for i, article in enumerate(context_articles, 1):
+                response += f"{i}. **{article.title}**\n"
+                if article.short_description:
+                    response += f"   {article.short_description}\n"
+                response += f"   [Read Article](/articles/{article.id}/)\n\n"
+            
+            response += "These articles contain information related to your question. Click the links to read more details."
+        else:
+            response = f"I couldn't find specific articles related to '{user_message}'. Here are some suggestions:\n\n"
+            response += "1. **Try rephrasing your question** with different keywords\n"
+            response += "2. **Browse categories** to find relevant topics\n"
+            response += "3. **Use the search function** to find specific information\n"
+            response += "4. **Contact your administrator** for assistance\n\n"
+            response += "You can also try asking about:\n"
+            response += "- Getting started guides\n"
+            response += "- Common procedures\n"
+            response += "- Department resources\n"
+            response += "- Company policies"
+        
+        return {
+            "response": response,
+            "referenced_articles": [article.id for article in context_articles] if context_articles else [],
+            "ai_analysis": {
+                "fallback_used": True,
+                "articles_referenced": len(context_articles) if context_articles else 0
+            }
+        }

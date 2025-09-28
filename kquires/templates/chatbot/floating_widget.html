@@ -1,0 +1,627 @@
+{% load static i18n %}
+
+<div id="floating-chatbot" class="floating-chatbot-container">
+    <!-- Toggle Button -->
+    <button id="chatbot-toggle" class="chatbot-toggle-btn" onclick="toggleFloatingChatbot()">
+        <i class="fas fa-robot"></i>
+        <span class="notification-badge" id="chatbot-notification" style="display: none;"></span>
+    </button>
+    
+    <!-- Chatbot Window -->
+    <div id="chatbot-window" class="chatbot-window" style="display: none;">
+        <div class="chatbot-header">
+            <div class="chatbot-title">
+                <h6 class="mb-0">
+                    <i class="fas fa-robot me-2"></i>
+                    {% trans 'Knowledge Assistant' %}
+                </h6>
+                <small class="text-muted" id="user-role-display">{{ user.get_role_display|default:"Employee" }}</small>
+            </div>
+            <div class="chatbot-controls">
+                <button class="btn-close-chat" onclick="closeFloatingChatbot()" title="{% trans 'Close' %}">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+        
+        <div id="floating-chat-messages" class="chatbot-messages">
+            <div class="welcome-message">
+                <div class="bot-avatar">
+                    <i class="fas fa-robot"></i>
+                </div>
+                <div class="message-content">
+                    <p>{% trans 'Hi! I\'m your knowledge assistant.' %}</p>
+                    <p>{% trans 'I can help you find articles and information relevant to your role.' %}</p>
+                    <p>{% trans 'What would you like to know?' %}</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="chatbot-input">
+            <div class="quick-suggestions" id="role-suggestions">
+                <!-- Role-specific suggestions will be loaded here -->
+            </div>
+            <div class="input-group">
+                <input type="text" id="floating-message-input" class="form-control" 
+                       placeholder="{% trans 'Ask me anything...' %}" 
+                       onkeypress="handleFloatingChatKeyPress(event)">
+                <button class="btn btn-primary" onclick="sendFloatingMessage()" id="floating-send-btn">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Typing Indicator -->
+        <div id="floating-typing" class="typing-indicator" style="display: none;">
+            <div class="bot-avatar">
+                <i class="fas fa-robot"></i>
+            </div>
+            <div class="typing-dots">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.floating-chatbot-container {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1050;
+    font-family: "Tajawal", serif;
+}
+
+.chatbot-toggle-btn {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    color: white;
+    font-size: 24px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.chatbot-toggle-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 25px rgba(0,0,0,0.2);
+}
+
+.notification-badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background: #ff4757;
+    color: white;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.chatbot-window {
+    position: absolute;
+    bottom: 80px;
+    right: 0;
+    width: 350px;
+    height: 500px;
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.chatbot-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.chatbot-title h6 {
+    color: white;
+    margin: 0;
+}
+
+.chatbot-controls {
+    display: flex;
+    gap: 5px;
+}
+
+.btn-close-chat {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+    padding: 5px;
+    border-radius: 3px;
+    transition: background-color 0.2s;
+}
+
+.btn-close-chat:hover {
+    background-color: rgba(255,255,255,0.2);
+}
+
+.chatbot-messages {
+    flex: 1;
+    padding: 15px;
+    overflow-y: auto;
+    background: #f8f9fa;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.welcome-message {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+}
+
+.bot-avatar {
+    width: 35px;
+    height: 35px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 16px;
+    flex-shrink: 0;
+}
+
+.message-content {
+    background: white;
+    padding: 12px 15px;
+    border-radius: 15px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    max-width: 80%;
+}
+
+.message-content p {
+    margin: 0 0 8px 0;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+.message-content p:last-child {
+    margin-bottom: 0;
+}
+
+.user-message {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 15px;
+}
+
+.user-message .message-content {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    margin-left: auto;
+}
+
+.bot-message {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    margin-bottom: 15px;
+}
+
+.chatbot-input {
+    padding: 15px;
+    border-top: 1px solid #e9ecef;
+    background: white;
+}
+
+.quick-suggestions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-bottom: 10px;
+}
+
+.suggestion-btn {
+    background: #e9ecef;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 15px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: #495057;
+}
+
+.suggestion-btn:hover {
+    background: #667eea;
+    color: white;
+}
+
+.input-group {
+    display: flex;
+    gap: 10px;
+}
+
+.input-group .form-control {
+    flex: 1;
+    border: 1px solid #dee2e6;
+    border-radius: 20px;
+    padding: 10px 15px;
+    font-size: 14px;
+    outline: none;
+}
+
+.input-group .form-control:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+}
+
+.input-group .btn {
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    color: white;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.input-group .btn:hover {
+    transform: scale(1.05);
+}
+
+.input-group .btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.typing-indicator {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    padding: 10px 15px;
+    background: rgba(102, 126, 234, 0.1);
+    margin: 0 15px;
+    border-radius: 10px;
+}
+
+.typing-dots {
+    display: flex;
+    gap: 4px;
+}
+
+.typing-dots span {
+    width: 8px;
+    height: 8px;
+    background-color: #667eea;
+    border-radius: 50%;
+    animation: typing 1.4s infinite ease-in-out;
+}
+
+.typing-dots span:nth-child(1) { animation-delay: -0.32s; }
+.typing-dots span:nth-child(2) { animation-delay: -0.16s; }
+
+@keyframes typing {
+    0%, 80%, 100% { 
+        transform: scale(0.8); 
+        opacity: 0.5; 
+    }
+    40% { 
+        transform: scale(1); 
+        opacity: 1; 
+    }
+}
+
+.referenced-articles {
+    margin-top: 10px;
+    padding: 10px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    border-left: 4px solid #667eea;
+}
+
+.referenced-articles h6 {
+    color: #667eea;
+    margin-bottom: 8px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.referenced-articles a {
+    color: #667eea;
+    text-decoration: none;
+    display: block;
+    padding: 4px 0;
+    font-size: 12px;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.referenced-articles a:last-child {
+    border-bottom: none;
+}
+
+.referenced-articles a:hover {
+    text-decoration: underline;
+    background-color: rgba(102, 126, 234, 0.1);
+    padding-left: 5px;
+    transition: all 0.2s ease;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .chatbot-window {
+        width: calc(100vw - 40px);
+        height: 400px;
+        right: -10px;
+    }
+    
+    .floating-chatbot-container {
+        bottom: 15px;
+        right: 15px;
+    }
+    
+    .chatbot-toggle-btn {
+        width: 50px;
+        height: 50px;
+        font-size: 20px;
+    }
+}
+
+/* Scrollbar styling */
+.chatbot-messages::-webkit-scrollbar {
+    width: 6px;
+}
+
+.chatbot-messages::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+
+.chatbot-messages::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 3px;
+}
+
+.chatbot-messages::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+</style>
+
+<script>
+// Floating chatbot JavaScript
+let floatingChatbotOpen = false;
+let currentFloatingSession = null;
+
+function toggleFloatingChatbot() {
+    const window = document.getElementById('chatbot-window');
+    floatingChatbotOpen = !floatingChatbotOpen;
+    
+    if (floatingChatbotOpen) {
+        window.style.display = 'flex';
+        loadRoleSuggestions();
+        loadFloatingChatHistory();
+        document.getElementById('floating-message-input').focus();
+    } else {
+        window.style.display = 'none';
+    }
+}
+
+function closeFloatingChatbot() {
+    const window = document.getElementById('chatbot-window');
+    window.style.display = 'none';
+    floatingChatbotOpen = false;
+}
+
+function loadRoleSuggestions() {
+    fetch('/chatbot/api/role-suggestions/')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const container = document.getElementById('role-suggestions');
+                container.innerHTML = '';
+                
+                data.suggestions.forEach(suggestion => {
+                    const btn = document.createElement('button');
+                    btn.className = 'suggestion-btn';
+                    btn.textContent = suggestion;
+                    btn.onclick = () => sendSuggestion(suggestion);
+                    container.appendChild(btn);
+                });
+                
+                // Update role display
+                document.getElementById('user-role-display').textContent = data.user_role_display;
+            }
+        })
+        .catch(error => {
+            console.error('Error loading role suggestions:', error);
+        });
+}
+
+function sendSuggestion(suggestion) {
+    document.getElementById('floating-message-input').value = suggestion;
+    sendFloatingMessage();
+}
+
+function loadFloatingChatHistory() {
+    // Load recent messages if needed
+    // This can be implemented to load chat history
+}
+
+function sendFloatingMessage() {
+    const input = document.getElementById('floating-message-input');
+    const sendBtn = document.getElementById('floating-send-btn');
+    const message = input.value.trim();
+    
+    if (!message) return;
+    
+    // Disable input and button
+    input.disabled = true;
+    sendBtn.disabled = true;
+    
+    // Add user message to chat
+    addFloatingMessage(message, 'user');
+    
+    // Clear input
+    input.value = '';
+    
+    // Show typing indicator
+    showFloatingTyping();
+    
+    // Send to server
+    fetch('/chatbot/api/send-role-based-message/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify({ message: message })
+    })
+    .then(response => response.json())
+    .then(data => {
+        hideFloatingTyping();
+        
+        if (data.success) {
+            addFloatingMessage(
+                data.bot_response.content, 
+                'bot', 
+                data.bot_response.referenced_articles
+            );
+        } else {
+            addFloatingMessage('Sorry, I encountered an error. Please try again.', 'system');
+        }
+    })
+    .catch(error => {
+        hideFloatingTyping();
+        console.error('Error:', error);
+        addFloatingMessage('Sorry, I encountered an error. Please try again.', 'system');
+    })
+    .finally(() => {
+        // Re-enable input and button
+        input.disabled = false;
+        sendBtn.disabled = false;
+        input.focus();
+    });
+}
+
+function addFloatingMessage(content, type, articles = null) {
+    const container = document.getElementById('floating-chat-messages');
+    
+    // Remove welcome message if it exists
+    const welcomeMessage = container.querySelector('.welcome-message');
+    if (welcomeMessage && type === 'user') {
+        welcomeMessage.remove();
+    }
+    
+    const messageDiv = document.createElement('div');
+    
+    if (type === 'user') {
+        messageDiv.className = 'user-message';
+        messageDiv.innerHTML = `
+            <div class="message-content">
+                <p>${content}</p>
+            </div>
+        `;
+    } else if (type === 'bot') {
+        messageDiv.className = 'bot-message';
+        let articleHtml = '';
+        
+        if (articles && articles.length > 0) {
+            articleHtml = `
+                <div class="referenced-articles">
+                    <h6><i class="fas fa-link me-1"></i>Referenced Articles:</h6>
+                    ${articles.map(article => `<a href="${article.url}" target="_blank">${article.title}</a>`).join('')}
+                </div>
+            `;
+        }
+        
+        messageDiv.innerHTML = `
+            <div class="bot-avatar">
+                <i class="fas fa-robot"></i>
+            </div>
+            <div class="message-content">
+                <p>${content}</p>
+                ${articleHtml}
+            </div>
+        `;
+    } else {
+        messageDiv.className = 'bot-message';
+        messageDiv.innerHTML = `
+            <div class="bot-avatar">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <div class="message-content">
+                <p><em>${content}</em></p>
+            </div>
+        `;
+    }
+    
+    container.appendChild(messageDiv);
+    container.scrollTop = container.scrollHeight;
+}
+
+function showFloatingTyping() {
+    const typingIndicator = document.getElementById('floating-typing');
+    typingIndicator.style.display = 'flex';
+    
+    const container = document.getElementById('floating-chat-messages');
+    container.scrollTop = container.scrollHeight;
+}
+
+function hideFloatingTyping() {
+    const typingIndicator = document.getElementById('floating-typing');
+    typingIndicator.style.display = 'none';
+}
+
+function handleFloatingChatKeyPress(event) {
+    if (event.key === 'Enter') {
+        sendFloatingMessage();
+    }
+}
+
+// Helper function to get CSRF token
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>

@@ -47,3 +47,28 @@ class User(AbstractUser):
     def log(self, action: str, details: str = "") -> None:
         from ..logs.models import Log 
         Log.objects.create(user=self, action=action, details=details)
+    
+    def get_primary_role(self):
+        """Get user's primary role"""
+        if self.is_admin:
+            return 'admin'
+        elif self.is_approval_manager:
+            return 'approval_manager'
+        elif self.is_article_writer:
+            return 'article_writer'
+        elif self.is_manager:
+            return 'manager'
+        elif self.is_employee:
+            return 'employee'
+        return 'employee'
+    
+    def get_role_display(self):
+        """Get user-friendly role name"""
+        role_names = {
+            'admin': 'Administrator',
+            'approval_manager': 'Approval Manager',
+            'article_writer': 'Article Writer',
+            'manager': 'Manager',
+            'employee': 'Employee'
+        }
+        return role_names.get(self.get_primary_role(), 'Employee')
