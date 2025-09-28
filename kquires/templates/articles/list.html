@@ -547,18 +547,20 @@
 
                 backendImage.onload = function () {
                   img.src = backendImage.src
-                  const imgWrapper = document.createElement('div')
-                  imgWrapper.classList.add('uploaded-image')
-                  imgWrapper.appendChild(img)
                   setTimeout(() => {
                     if (window.briefDescriptionEditor) {
-                      window.briefDescriptionEditor.model.change(writer => {
-                        const imageElement = writer.createElement('imageBlock', {
-                          src: img.src,
-                          alt: 'Uploaded Image'
-                        });
-                        writer.insert(imageElement, window.briefDescriptionEditor.model.document.getRoot());
-                      });
+                      try {
+                        // Use insertContent instead of model.change for better compatibility
+                        const imageHtml = `<figure class="image"><img src="${img.src}" alt="Uploaded Image" style="max-width: 100%; max-height: 300px;"></figure>`;
+                        window.briefDescriptionEditor.model.insertContent(
+                          window.briefDescriptionEditor.data.processor.toView(imageHtml)
+                        );
+                      } catch (error) {
+                        console.error('Error inserting image:', error);
+                        // Fallback: insert as plain text
+                        const currentData = window.briefDescriptionEditor.getData();
+                        window.briefDescriptionEditor.setData(currentData + `<p><img src="${img.src}" alt="Uploaded Image" style="max-width: 100%; max-height: 300px;"></p>`);
+                      }
                     }
                   }, 300)
                 }
@@ -571,28 +573,34 @@
                 video.classList.add('d-block', 'w-100')
                 video.style = 'max-width: 100%; max-height: 400px;'
 
-                const videoWrapper = document.createElement('div')
-                videoWrapper.classList.add('uploaded-video')
-                videoWrapper.appendChild(video)
                 setTimeout(() => {
                   if (window.briefDescriptionEditor) {
-                    window.briefDescriptionEditor.model.change(writer => {
-                      const htmlElement = writer.createElement('htmlEmbed', {
-                        html: videoWrapper.outerHTML
-                      });
-                      writer.insert(htmlElement, window.briefDescriptionEditor.model.document.getRoot());
-                    });
+                    try {
+                      // Use insertContent instead of htmlEmbed for better compatibility
+                      const videoHtml = `<p><video src="${videoURL}" controls style="max-width: 100%; max-height: 400px;">Your browser does not support the video tag.</video></p>`;
+                      const currentData = window.briefDescriptionEditor.getData();
+                      window.briefDescriptionEditor.setData(currentData + videoHtml);
+                    } catch (error) {
+                      console.error('Error inserting video:', error);
+                      // Fallback: insert as plain text
+                      const currentData = window.briefDescriptionEditor.getData();
+                      window.briefDescriptionEditor.setData(currentData + `<p>Video: <a href="${videoURL}" target="_blank">${videoURL}</a></p>`);
+                    }
                   }
                 }, 300)
               } else if (data.content) {
                 if (window.briefDescriptionEditor) {
-                  window.briefDescriptionEditor.model.change(writer => {
-                    const contentHtml = `<p><strong>Extracted Content:</strong> </p><p>${data.content.replace(/\n/g, '<br>')}</p>`;
-                    const htmlElement = writer.createElement('htmlEmbed', {
-                      html: contentHtml
-                    });
-                    writer.insert(htmlElement, window.briefDescriptionEditor.model.document.getRoot());
-                  });
+                  try {
+                    // Use setData instead of htmlEmbed for better compatibility
+                    const contentHtml = `<p><strong>Extracted Content:</strong></p><p>${data.content.replace(/\n/g, '<br>')}</p>`;
+                    const currentData = window.briefDescriptionEditor.getData();
+                    window.briefDescriptionEditor.setData(currentData + contentHtml);z
+                  } catch (error) {
+                    console.error('Error inserting content:', error);
+                    // Fallback: insert as plain text
+                    const currentData = window.briefDescriptionEditor.getData();
+                    window.briefDescriptionEditor.setData(currentData + `<p><strong>Extracted Content:</strong></p><p>${data.content}</p>`);
+                  }
                 }
               }
             } catch (error) {

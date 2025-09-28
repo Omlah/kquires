@@ -231,6 +231,13 @@
                 <span>{% trans "Articles" %}</span>
               </a>
             </li>
+            <!-- File Manager -->
+            <li>
+              <a href="{% url 'articles:file_manager' %}" class="d-flex align-items-center text-decoration-none text-dark mx-2 my-1" style="transition: 0.3s; line-height: 1;">
+                <i class="fas fa-folder-open mx-2" style="width: 20px; height: 20px; color: #A94BEA;"></i>
+                <span>{% trans "File Manager" %}</span>
+              </a>
+            </li>
             <!-- AI Chatbot -->
             <!-- <li>
               <a href="{% url 'chatbot:chat' %}" class="d-flex align-items-center text-decoration-none text-dark mx-2 my-1" style="transition: 0.3s; line-height: 1;">
@@ -302,6 +309,13 @@
                 <span>{% trans "Technical Support" %}</span>
               </a>
             </li>
+            <!-- File Manager (Admin) -->
+            <li>
+              <a href="{% url 'articles:file_manager' %}" class="d-flex align-items-center text-decoration-none text-dark mx-2 my-1" style="transition: 0.3s; line-height: 1;">
+                <i class="fas fa-folder-open mx-2" style="width: 20px; height: 20px; color: #A94BEA;"></i>
+                <span>{% trans "File Manager" %}</span>
+              </a>
+            </li>
             {% endif %}
             <li style="background: none !important" class="mt-5">
               <a href="#" class="" id="menu-toggle">
@@ -346,13 +360,18 @@
         const langCode = getCookie('language') || 'en'; // Default to English
         const body = document.body;
         const navbaricon = document.getElementById('navbar-icons');
+        
         if (langCode === 'en') {
-          navbaricon.classList.add('ms-auto');
-          navbaricon.classList.remove('me-auto');
+          if (navbaricon) {
+            navbaricon.classList.add('ms-auto');
+            navbaricon.classList.remove('me-auto');
+          }
           body.style.direction = "ltr";
         } else {
-          navbaricon.classList.remove('ms-auto');
-          navbaricon.classList.add('me-auto');
+          if (navbaricon) {
+            navbaricon.classList.remove('ms-auto');
+            navbaricon.classList.add('me-auto');
+          }
           body.style.direction = "rtl";
         }
       })();

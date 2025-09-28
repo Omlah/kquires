@@ -25,7 +25,7 @@ class EmailOrEmployeeIDBackend(ModelBackend):
             # Return None if no user is found
             return None
 
-        if user.status is False:
+        if user.status != 'True':
             return None
 
 

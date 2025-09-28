@@ -142,13 +142,18 @@ a{
         const langCode = getCookie('language') || 'en'; // Default to English
         const body = document.body;
         const navbaricon = document.getElementById('navbar-icons');
+        
         if (langCode === 'en') {
-          navbaricon.classList.add('ms-auto');
-          navbaricon.classList.remove('me-auto');
+          if (navbaricon) {
+            navbaricon.classList.add('ms-auto');
+            navbaricon.classList.remove('me-auto');
+          }
           body.style.direction = "ltr";
         } else {
-          navbaricon.classList.remove('ms-auto');
-          navbaricon.classList.add('me-auto');
+          if (navbaricon) {
+            navbaricon.classList.remove('ms-auto');
+            navbaricon.classList.add('me-auto');
+          }
           body.style.direction = "rtl";
         }
       })();

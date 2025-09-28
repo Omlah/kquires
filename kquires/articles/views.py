@@ -114,6 +114,31 @@ class ArticleCreateView(CreateView):
         instance.language = detected_lang
         instance.save()
         
+        # Handle Google Drive upload if attachment is provided
+        if self.request.FILES.get('attachment'):
+            attachment_file = self.request.FILES['attachment']
+            try:
+                # Read file content
+                file_content = attachment_file.read()
+                filename = attachment_file.name
+                mime_type = attachment_file.content_type
+                
+                # Upload to Google Drive
+                upload_result = instance.upload_to_google_drive(
+                    file_content=file_content,
+                    filename=filename,
+                    mime_type=mime_type
+                )
+                
+                if upload_result.get('success'):
+                    # File uploaded successfully to Google Drive
+                    print(f"File uploaded to Google Drive: {upload_result.get('file_id')}")
+                else:
+                    print(f"Google Drive upload failed: {upload_result.get('error')}")
+                    
+            except Exception as e:
+                print(f"Error uploading to Google Drive: {str(e)}")
+        
         # Generate translation in opposite language
         target_lang = "arabic" if detected_lang == "english" else "english"
         
@@ -395,6 +420,31 @@ def upload_article(request):
             article.language = detected_lang
             article.save()
 
+            # Handle Google Drive upload if attachment is provided
+            if request.FILES.get('attachment'):
+                attachment_file = request.FILES['attachment']
+                try:
+                    # Read file content
+                    file_content = attachment_file.read()
+                    filename = attachment_file.name
+                    mime_type = attachment_file.content_type
+                    
+                    # Upload to Google Drive
+                    upload_result = article.upload_to_google_drive(
+                        file_content=file_content,
+                        filename=filename,
+                        mime_type=mime_type
+                    )
+                    
+                    if upload_result.get('success'):
+                        # File uploaded successfully to Google Drive
+                        print(f"File uploaded to Google Drive: {upload_result.get('file_id')}")
+                    else:
+                        print(f"Google Drive upload failed: {upload_result.get('error')}")
+                        
+                except Exception as e:
+                    print(f"Error uploading to Google Drive: {str(e)}")
+
             # Generate translation in opposite language
             target_lang = "arabic" if detected_lang == "english" else "english"
             try:
@@ -564,3 +614,84 @@ def process_file(request):
             return JsonResponse({"error": str(e)}, status=500)
 
     return JsonResponse({"error": "Invalid request"}, status=400)
+
+
+class FileManagerView(ListView):
+    """View for managing uploaded files"""
+    model = Article
+    template_name = "articles/file_manager.html"
+    context_object_name = "articles"
+    paginate_by = 20
+
+    def get_queryset(self):
+        """Get articles that have Google Drive files"""
+        return Article.objects.filter(
+            google_drive_file_id__isnull=False
+        ).exclude(google_drive_file_id='').order_by('-created_at')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        # Add file statistics
+        total_files = self.get_queryset().count()
+        total_size = sum(
+            article.google_drive_file_size or 0 
+            for article in self.get_queryset()
+        )
+        
+        context.update({
+            'total_files': total_files,
+            'total_size': total_size,
+            'total_size_mb': round(total_size / (1024 * 1024), 2) if total_size else 0,
+        })
+        
+        return context
+
+
+def delete_file_from_drive(request, article_id):
+    """Delete file from Google Drive"""
+    if request.method == "POST":
+        try:
+            article = get_object_or_404(Article, id=article_id)
+            result = article.delete_from_google_drive()
+            
+            if result.get('success'):
+                return JsonResponse({
+                    'success': True,
+                    'message': 'File deleted successfully from Google Drive'
+                })
+            else:
+                return JsonResponse({
+                    'success': False,
+                    'message': result.get('error', 'Failed to delete file')
+                })
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'message': f'Error: {str(e)}'
+            })
+    
+    return JsonResponse({'success': False, 'message': 'Invalid request method'})
+
+
+def get_file_info(request, article_id):
+    """Get Google Drive file information"""
+    try:
+        article = get_object_or_404(Article, id=article_id)
+        result = article.get_google_drive_file_info()
+        
+        if result.get('success'):
+            return JsonResponse({
+                'success': True,
+                'file_info': result
+            })
+        else:
+            return JsonResponse({
+                'success': False,
+                'message': result.get('error', 'Failed to get file info')
+            })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': f'Error: {str(e)}'
+        })

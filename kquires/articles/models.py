@@ -21,6 +21,13 @@ class Article(models.Model):
     
     title = models.CharField(blank=True, max_length=255, verbose_name='Title')
     attachment = models.FileField(upload_to='attachments/', verbose_name='Attachment', null=True, blank=True)
+    
+    # Google Drive integration fields
+    google_drive_file_id = models.CharField(max_length=255, blank=True, null=True, verbose_name='Google Drive File ID')
+    google_drive_filename = models.CharField(max_length=255, blank=True, null=True, verbose_name='Google Drive Filename')
+    google_drive_web_view_link = models.URLField(blank=True, null=True, verbose_name='Google Drive Web View Link')
+    google_drive_web_content_link = models.URLField(blank=True, null=True, verbose_name='Google Drive Web Content Link')
+    google_drive_file_size = models.BigIntegerField(blank=True, null=True, verbose_name='Google Drive File Size')
     category = models.ForeignKey(Category, on_delete=models.CASCADE, verbose_name='Category', related_name='articles')
     subcategory = models.ForeignKey(
         Category, 
@@ -202,6 +209,104 @@ class Article(models.Model):
             except:
                 pass
         return errors
+    
+    def upload_to_google_drive(self, file_content, filename, mime_type=None):
+        """
+        Upload file to Google Drive and update article fields
+        
+        Args:
+            file_content: File content as bytes
+            filename: Name of the file
+            mime_type: MIME type of the file
+            
+        Returns:
+            Dict containing upload result
+        """
+        try:
+            from ..utils.google_drive_service import google_drive_service
+            
+            # Upload to Google Drive
+            result = google_drive_service.upload_file(
+                file_content=file_content,
+                filename=filename,
+                mime_type=mime_type
+            )
+            
+            if result.get('success'):
+                # Update article fields with Google Drive information
+                self.google_drive_file_id = result.get('file_id')
+                self.google_drive_filename = result.get('filename')
+                self.google_drive_web_view_link = result.get('web_view_link')
+                self.google_drive_web_content_link = result.get('web_content_link')
+                self.google_drive_file_size = result.get('size')
+                self.save(update_fields=[
+                    'google_drive_file_id',
+                    'google_drive_filename', 
+                    'google_drive_web_view_link',
+                    'google_drive_web_content_link',
+                    'google_drive_file_size'
+                ])
+            
+            return result
+            
+        except Exception as e:
+            return {'error': f'Failed to upload to Google Drive: {str(e)}'}
+    
+    def delete_from_google_drive(self):
+        """
+        Delete file from Google Drive
+        
+        Returns:
+            Dict containing deletion result
+        """
+        try:
+            if not self.google_drive_file_id:
+                return {'error': 'No Google Drive file ID found'}
+            
+            from ..utils.google_drive_service import google_drive_service
+            
+            result = google_drive_service.delete_file(self.google_drive_file_id)
+            
+            if result.get('success'):
+                # Clear Google Drive fields
+                self.google_drive_file_id = None
+                self.google_drive_filename = None
+                self.google_drive_web_view_link = None
+                self.google_drive_web_content_link = None
+                self.google_drive_file_size = None
+                self.save(update_fields=[
+                    'google_drive_file_id',
+                    'google_drive_filename',
+                    'google_drive_web_view_link', 
+                    'google_drive_web_content_link',
+                    'google_drive_file_size'
+                ])
+            
+            return result
+            
+        except Exception as e:
+            return {'error': f'Failed to delete from Google Drive: {str(e)}'}
+    
+    def get_google_drive_file_info(self):
+        """
+        Get current Google Drive file information
+        
+        Returns:
+            Dict containing file information
+        """
+        try:
+            if not self.google_drive_file_id:
+                return {'error': 'No Google Drive file ID found'}
+            
+            from ..utils.google_drive_service import google_drive_service
+            return google_drive_service.get_file_info(self.google_drive_file_id)
+            
+        except Exception as e:
+            return {'error': f'Failed to get Google Drive file info: {str(e)}'}
+    
+    def has_google_drive_file(self):
+        """Check if article has a Google Drive file"""
+        return bool(self.google_drive_file_id)
     
     def save(self, *args, **kwargs):
         """Override save to validate category assignment"""

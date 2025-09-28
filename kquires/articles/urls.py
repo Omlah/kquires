@@ -15,6 +15,9 @@ from .views import (
     article_detail_api,
     export_csv,
     test_translation_api,
+    FileManagerView,
+    delete_file_from_drive,
+    get_file_info,
 )
 from .api_views import translate_article_view, get_task_status  # Added from feature branch
 
@@ -43,4 +46,9 @@ urlpatterns = [
     
     # Test endpoint
     path("api/test-translation/", test_translation_api, name="test_translation"),
+    
+    # File Manager endpoints
+    path("files/", FileManagerView.as_view(), name="file_manager"),
+    path("files/delete/<int:article_id>/", delete_file_from_drive, name="delete_file_from_drive"),
+    path("files/info/<int:article_id>/", get_file_info, name="get_file_info"),
 ]
