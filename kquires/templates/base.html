@@ -202,5 +202,10 @@ a{
       });
   </script>
   {% include "pages/layout/footer.html" %}
+  
+  <!-- Floating Chatbot Widget -->
+  {% if user.is_authenticated %}
+    {% include 'chatbot/floating_widget.html' %}
+  {% endif %}
 </body>
 </html>

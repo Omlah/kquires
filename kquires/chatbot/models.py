@@ -14,11 +14,36 @@ class ChatSession(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     is_active = models.BooleanField(default=True)
     
+    # Role-based fields
+    user_role = models.CharField(max_length=100, blank=True, verbose_name="User Role")
+    department = models.ForeignKey('departments.Department', on_delete=models.SET_NULL, null=True, blank=True)
+    
     class Meta:
         ordering = ['-updated_at']
     
     def __str__(self):
         return f"Chat Session {self.session_id} - {self.user.name}"
+    
+    def get_user_primary_role(self):
+        """Determine the user's primary role"""
+        user = self.user
+        if user.is_admin:
+            return 'admin'
+        elif user.is_approval_manager:
+            return 'approval_manager'
+        elif user.is_article_writer:
+            return 'article_writer'
+        elif user.is_manager:
+            return 'manager'
+        elif user.is_employee:
+            return 'employee'
+        return 'employee'  # default
+    
+    def save(self, *args, **kwargs):
+        if self.user and not self.user_role:
+            self.user_role = self.get_user_primary_role()
+            self.department = self.user.department
+        super().save(*args, **kwargs)
 
 
 class ChatMessage(models.Model):
