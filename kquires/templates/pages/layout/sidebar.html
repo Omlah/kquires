@@ -156,7 +156,7 @@
   }
 
   body[style*="direction: ltr"] #wrapper.menuDisplayed #page-content-wrapper {
-    padding-left: 250px;
+    padding-left:250px;
     padding-right: 0;
   }
 </style>
@@ -357,40 +357,7 @@
         }
       })();
 
-      const menuToggle = document.getElementById("menu-toggle");
-      const menuToggleT = document.getElementById("menu-toggle-t");
-      const wrapper = document.getElementById("wrapper");
-
-      if (wrapper.classList.contains("menuDisplayed")) {
-        menuToggleT.style.display = "none";
-      } else {
-        menuToggleT.style.display = "block";
-      }
-
-      document.addEventListener("DOMContentLoaded", function () {
-        menuToggle.addEventListener("click", function (e) {
-          e.preventDefault();
-          wrapper.classList.toggle("menuDisplayed");
-
-          if (wrapper.classList.contains("menuDisplayed")) {
-            menuToggleT.style.display = "none";
-          } else {
-            menuToggleT.style.display = "block";
-          }
-
-        });
-        menuToggleT.addEventListener("click", function (e) {
-          e.preventDefault();
-          wrapper.classList.toggle("menuDisplayed");
-
-          if (wrapper.classList.contains("menuDisplayed")) {
-            menuToggleT.style.display = "none";
-          } else {
-            menuToggleT.style.display = "block";
-          }
-
-        });
-      });
+      // Menu toggle functionality is handled in base.html
     </script>
     <script>
       document.addEventListener('DOMContentLoaded', function () {

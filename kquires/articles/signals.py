@@ -22,7 +22,9 @@ def article_status_update(sender, instance, created, **kwargs):
         if previous_status != instance.status:  
             if instance.status in ['approved', 'rejected']:
                 message = f"Your article '{instance.title}' has been {instance.status}."
-                Notification.objects.create(user=instance.user, article=instance, message=message)
+                # Only create notification if user exists
+                if instance.user:
+                    Notification.objects.create(user=instance.user, article=instance, message=message)
 
 
 @receiver(post_save, sender=Article)

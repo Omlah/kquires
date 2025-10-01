@@ -98,28 +98,66 @@
                 searchResults.style.display = "none";
                 return;
             }
-    console.log("Fetching results for:", query);
-            const response = await fetch(`/dashboard/search/?q=${query}`);
-            const data = await response.json();
-    console.log(data)
+            
+            // Show loading state
+            searchResults.innerHTML = `
+                <div class="dropdown-item text-center">
+                    <div class="spinner-border spinner-border-sm me-2" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <span>{% trans "Searching..." %}</span>
+                </div>
+            `;
+            searchResults.style.display = "block";
+            
+            console.log("Fetching results for:", query);
+            
+            try {
+                const response = await fetch(`/dashboard/search/?q=${encodeURIComponent(query)}`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                console.log(data);
 
-            if (data.results.length > 0) {
-                searchResults.innerHTML = data.results
-                    .map(article => {
-                        const highlightedTitle = highlightMatch(article.title, query);
-                        const highlightedShortDesc = highlightMatch(article.short_description, query);
+                if (data.results && data.results.length > 0) {
+                    searchResults.innerHTML = data.results
+                        .map(article => {
+                            const highlightedTitle = highlightMatch(article.title || '', query);
+                            const highlightedShortDesc = highlightMatch(article.short_description || '', query);
+                            const category = article.category__name ? ` • ${article.category__name}` : '';
+                            const subcategory = article.subcategory__name ? ` • ${article.subcategory__name}` : '';
 
-                        return `
-                            <a href="javascript:void(0)" class="dropdown-item" data-id="${article.id}">
-                                <strong>${highlightedTitle}</strong>
-                                <small class="text-secondary">${highlightedShortDesc}</small>
-                            </a>`;
-                    })
-                    .join("");
+                            return `
+                                <a href="javascript:void(0)" class="dropdown-item" data-id="${article.id}">
+                                    <strong>${highlightedTitle}</strong>
+                                    <small class="text-secondary d-block">${highlightedShortDesc}</small>
+                                    <small class="text-muted">${category}${subcategory}</small>
+                                </a>`;
+                        })
+                        .join("");
 
+                    searchResults.style.display = "block";
+                } else {
+                    searchResults.innerHTML = `
+                        <div class="dropdown-item text-center text-muted">
+                            <i class="fas fa-search me-2"></i>
+                            {% trans "No articles found" %}
+                        </div>
+                    `;
+                    searchResults.style.display = "block";
+                }
+            } catch (error) {
+                console.error('Search error:', error);
+                searchResults.innerHTML = `
+                    <div class="dropdown-item text-center text-danger">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        {% trans "Search failed. Please try again." %}
+                    </div>
+                `;
                 searchResults.style.display = "block";
-            } else {
-                searchResults.style.display = "none";
             }
         }
 
@@ -130,9 +168,24 @@
             return text.replace(regex, `<span style=" font-weight: bold; color:red;">$1</span>`);
         }
 
+        // Debounce function to limit API calls
+        let searchTimeout;
+        function debounceSearch(query) {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                fetchResults(query);
+            }, 300); // 300ms delay
+        }
+
         // Listen for input changes
         searchInput.addEventListener("input", function () {
-            fetchResults(this.value);
+            const query = this.value.trim();
+            if (query.length < 2) {
+                searchResults.style.display = "none";
+                clearTimeout(searchTimeout);
+                return;
+            }
+            debounceSearch(query);
         });
 
         // Handle click on a search result

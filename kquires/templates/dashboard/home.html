@@ -112,7 +112,7 @@
 
 <div class="modal fade" id="newArticleModal" tabindex="-1" aria-labelledby="newArticleModalLabel" aria-hidden="true">
   <!-- Be sure to include 'enctype="multipart/form-data"' if you're uploading files -->
-  <form method="POST" action="{% url 'articles:create' %}" enctype="multipart/form-data">
+  <form method="POST" action="" id="articleForm" enctype="multipart/form-data">
     {% csrf_token %}
     <!-- If editing an existing article, you can store its ID here -->
     <input type="hidden" name="id" id="id">
@@ -252,6 +252,14 @@
   
 
   <script>
+    // Set default form action to create URL
+    document.addEventListener('DOMContentLoaded', function() {
+      const form = document.getElementById('articleForm')
+      if (form) {
+        form.action = '{% url "articles:create" %}'
+      }
+    })
+
     function fetchCategoryDetails(ticketId) {
         fetch(`{% url 'categories:category_detail_api' '000' %}`.replace('000', ticketId))
             .then(response => response.json())

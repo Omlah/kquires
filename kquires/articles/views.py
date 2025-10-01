@@ -85,14 +85,69 @@ class ArticleListView(ListView):
     model = Article
     template_name = "articles/list.html"
     context_object_name = "articles"
+    paginate_by = 10  # Add pagination
+
+    def get_paginate_by(self, queryset):
+        """Allow dynamic pagination based on page_size parameter"""
+        page_size = self.request.GET.get('page_size')
+        if page_size and page_size.isdigit():
+            return int(page_size)
+        return self.paginate_by
 
     def get_queryset(self):
-        return Article.objects.filter(parent_article__isnull=True).order_by('-created_at')
+        queryset = Article.objects.filter(parent_article__isnull=True).order_by('-created_at')
+        
+        # Handle search query with comprehensive database search
+        search_query = self.request.GET.get('q')
+        if search_query:
+            import re
+            query_normalized = re.sub(r'[^a-zA-Z0-9\u0600-\u06FF]', ' ', search_query).lower()
+            
+            # Create a comprehensive search query that searches across all relevant fields
+            search_conditions = Q()
+            
+            # Search in main fields
+            search_conditions |= Q(title__icontains=search_query)
+            search_conditions |= Q(short_description__icontains=search_query)
+            search_conditions |= Q(brief_description__icontains=search_query)
+            
+            # Search in Arabic fields if they exist
+            search_conditions |= Q(title_ar__icontains=search_query)
+            search_conditions |= Q(short_description_ar__icontains=search_query)
+            search_conditions |= Q(brief_description_ar__icontains=search_query)
+            search_conditions |= Q(title_arabic__icontains=search_query)
+            search_conditions |= Q(short_description_arabic__icontains=search_query)
+            search_conditions |= Q(brief_description_arabic__icontains=search_query)
+            
+            # Search in category and subcategory names
+            search_conditions |= Q(category__name__icontains=search_query)
+            search_conditions |= Q(subcategory__name__icontains=search_query)
+            
+            # Search in user information
+            search_conditions |= Q(user__first_name__icontains=search_query)
+            search_conditions |= Q(user__last_name__icontains=search_query)
+            search_conditions |= Q(user__name__icontains=search_query)
+            search_conditions |= Q(user__employee_id__icontains=search_query)
+            search_conditions |= Q(user__email__icontains=search_query)
+            
+            # Search in technical terms (JSON field)
+            search_conditions |= Q(technical_terms__icontains=search_query)
+            
+            # Also search with normalized query for better matching
+            if query_normalized != search_query.lower():
+                search_conditions |= Q(title__icontains=query_normalized)
+                search_conditions |= Q(short_description__icontains=query_normalized)
+                search_conditions |= Q(brief_description__icontains=query_normalized)
+            
+            queryset = queryset.filter(search_conditions)
+        
+        return queryset
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["current_language"] = get_language()
         context['categories'] = Category.objects.filter(status='approved', type='Main')
+        context['search_query'] = self.request.GET.get('q', '')
         return context
 
 
@@ -216,11 +271,13 @@ class ArticleStatusView(View):
             article.save()
 
             if old_status != new_status and new_status in ["approved", "rejected"]:
-                Notification.objects.create(
-                    user=article.user,
-                    article=article,
-                    message=f"Your article '{article.title}' has been {new_status}.",
-                )
+                # Only create notification if user exists
+                if article.user:
+                    Notification.objects.create(
+                        user=article.user,
+                        article=article,
+                        message=f"Your article '{article.title}' has been {new_status}.",
+                    )
 
         return redirect("articles:list")
 
