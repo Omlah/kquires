@@ -1,383 +1,430 @@
 {% extends "base.html" %}
-{% load i18n %}
+{% load i18n static %}
 
-{% block title %}{% trans 'File Manager' %} - {{ block.super }}{% endblock %}
+{% block title %}{% trans 'File Manager' %}{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
     <div class="row">
         <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h1 class="h3 mb-0">{% trans 'File Manager' %}</h1>
-                <div class="d-flex gap-2">
-                    <a href="{% url 'articles:list' %}" class="btn btn-outline-secondary">
-                        <i class="fas fa-arrow-left"></i> {% trans 'Back to Articles' %}
-                    </a>
-                </div>
-            </div>
-
-            <!-- Statistics Cards -->
-            <div class="row mb-4">
-                <div class="col-md-4">
-                    <div class="card bg-primary text-white">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between">
-                                <div>
-                                    <h4 class="card-title">{{ total_files }}</h4>
-                                    <p class="card-text">{% trans 'Total Files' %}</p>
-                                </div>
-                                <div class="align-self-center">
-                                    <i class="fas fa-file fa-2x"></i>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="card bg-success text-white">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between">
-                                <div>
-                                    <h4 class="card-title">{{ total_size_mb }} MB</h4>
-                                    <p class="card-text">{% trans 'Total Size' %}</p>
-                                </div>
-                                <div class="align-self-center">
-                                    <i class="fas fa-hdd fa-2x"></i>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="card bg-info text-white">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between">
-                                <div>
-                                    <h4 class="card-title">Google Drive</h4>
-                                    <p class="card-text">{% trans 'Storage Provider' %}</p>
-                                </div>
-                                <div class="align-self-center">
-                                    <i class="fab fa-google-drive fa-2x"></i>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Files Table -->
             <div class="card">
                 <div class="card-header">
-                    <h5 class="card-title mb-0">{% trans 'Uploaded Files' %}</h5>
+                    <h3 class="card-title">
+                        <i class="fas fa-folder-open"></i> {% trans 'File Manager' %}
+                    </h3>
                 </div>
                 <div class="card-body">
-                    {% if articles %}
-                        <div class="table-responsive">
-                            <table class="table table-hover">
-                                <thead>
-                                    <tr>
-                                        <th>{% trans 'Article Title' %}</th>
-                                        <th>{% trans 'File Name' %}</th>
-                                        <th>{% trans 'File Size' %}</th>
-                                        <th>{% trans 'Upload Date' %}</th>
-                                        <th>{% trans 'Language' %}</th>
-                                        <th>{% trans 'Status' %}</th>
-                                        <th>{% trans 'Actions' %}</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for article in articles %}
-                                    <tr>
-                                        <td>
-                                            <a href="{% url 'articles:index' article.pk %}" class="text-decoration-none">
-                                                {{ article.title|truncatechars:50 }}
-                                            </a>
-                                        </td>
-                                        <td>
-                                            <span class="badge bg-secondary">{{ article.google_drive_filename|truncatechars:30 }}</span>
-                                        </td>
-                                        <td>
-                                            {% if article.google_drive_file_size %}
-                                                {{ article.google_drive_file_size|filesizeformat }}
-                                            {% else %}
-                                                <span class="text-muted">-</span>
-                                            {% endif %}
-                                        </td>
-                                        <td>{{ article.created_at|date:"M d, Y H:i" }}</td>
-                                        <td>
-                                            <span class="badge bg-{% if article.language == 'english' %}primary{% else %}warning{% endif %}">
-                                                {{ article.language|title }}
-                                            </span>
-                                        </td>
-                                        <td>
-                                            <span class="badge bg-{% if article.status == 'approved' %}success{% elif article.status == 'pending' %}warning{% else %}danger{% endif %}">
-                                                {{ article.status|title }}
-                                            </span>
-                                        </td>
-                                        <td>
-                                            <div class="btn-group" role="group">
-                                                {% if article.google_drive_web_view_link %}
-                                                    <a href="{{ article.google_drive_web_view_link }}" 
-                                                       target="_blank" 
-                                                       class="btn btn-sm btn-outline-primary"
-                                                       title="{% trans 'View in Google Drive' %}">
-                                                        <i class="fas fa-external-link-alt"></i>
-                                                    </a>
-                                                {% endif %}
-                                                {% if article.google_drive_web_content_link %}
-                                                    <a href="{{ article.google_drive_web_content_link }}" 
-                                                       target="_blank" 
-                                                       class="btn btn-sm btn-outline-success"
-                                                       title="{% trans 'Download' %}">
-                                                        <i class="fas fa-download"></i>
-                                                    </a>
-                                                {% endif %}
-                                                <button type="button" 
-                                                        class="btn btn-sm btn-outline-info"
-                                                        onclick="showFileInfo({{ article.id }})"
-                                                        title="{% trans 'File Info' %}">
-                                                    <i class="fas fa-info-circle"></i>
-                                                </button>
-                                                <button type="button" 
-                                                        class="btn btn-sm btn-outline-danger"
-                                                        onclick="deleteFile({{ article.id }}, '{{ article.google_drive_filename }}')"
-                                                        title="{% trans 'Delete from Google Drive' %}">
-                                                    <i class="fas fa-trash"></i>
-                                                </button>
+                    <!-- Upload Section -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="card border-primary">
+                                <div class="card-header bg-primary text-white">
+                                    <h5 class="mb-0">
+                                        <i class="fas fa-cloud-upload-alt"></i> Upload PDF Files
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <!-- File Selection -->
+                                    <div class="mb-3">
+                                        <label for="pdfFileInput" class="form-label">Choose PDF Files:</label>
+                                        <input type="file" id="pdfFileInput" accept=".pdf" multiple class="form-control">
+                                    </div>
+                                    
+                                    <!-- Upload Button -->
+                                    <button type="button" class="btn btn-success btn-lg w-100" id="uploadBtn">
+                                        <i class="fas fa-cloud-upload-alt"></i> Save & Upload to Google Drive
+                                    </button>
+                                    
+                                    <!-- Status Display -->
+                                    <div id="uploadStatus" class="mt-3" style="display: none;">
+                                        <div class="alert alert-info">
+                                            <div id="statusText">Preparing upload...</div>
+                                            <div class="progress mt-2">
+                                                <div id="progressBar" class="progress-bar" role="progressbar" style="width: 0%"></div>
                                             </div>
-                                        </td>
-                                    </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Instructions -->
+                                    <div class="alert alert-light mt-3">
+                                        <small>
+                                            <i class="fas fa-info-circle"></i>
+                                            <strong>How to upload:</strong><br>
+                                            1. Click "Choose Files" above and select PDF files<br>
+                                            2. Click "Save & Upload to Google Drive" button<br>
+                                            3. Files will be uploaded to Google Drive and text extracted automatically
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
+                    </div>
 
-                        <!-- Pagination -->
-                        {% if is_paginated %}
-                            <nav aria-label="{% trans 'File manager pagination' %}">
-                                <ul class="pagination justify-content-center">
-                                    {% if page_obj.has_previous %}
-                                        <li class="page-item">
-                                            <a class="page-link" href="?page=1">{% trans 'First' %}</a>
-                                        </li>
-                                        <li class="page-item">
-                                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}">{% trans 'Previous' %}</a>
-                                        </li>
-                                    {% endif %}
+                    <!-- Search Section -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="fas fa-search"></i>
+                                </span>
+                                <input type="text" id="searchInput" class="form-control" placeholder="Search files...">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <select id="filterType" class="form-select">
+                                <option value="all">All Files</option>
+                                <option value="pdf">PDF Files</option>
+                                <option value="article">Article Files</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <button type="button" class="btn btn-outline-secondary w-100" id="clearSearchBtn">
+                                <i class="fas fa-times"></i> Clear
+                            </button>
+                        </div>
+                    </div>
 
-                                    <li class="page-item active">
-                                        <span class="page-link">
-                                            {% trans 'Page' %} {{ page_obj.number }} {% trans 'of' %} {{ page_obj.paginator.num_pages }}
+                    <!-- Files Table -->
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>{% trans 'Type' %}</th>
+                                    <th>{% trans 'Filename' %}</th>
+                                    <th>{% trans 'Size' %}</th>
+                                    <th>{% trans 'Upload Date' %}</th>
+                                    <th>{% trans 'Status' %}</th>
+                                    <th>{% trans 'Actions' %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- PDF Files -->
+                                {% for pdf_file in pdf_files %}
+                                <tr class="file-row" data-file-type="pdf">
+                                    <td>
+                                        <span class="badge bg-danger">
+                                            <i class="fas fa-file-pdf"></i> PDF
                                         </span>
-                                    </li>
+                                    </td>
+                                    <td class="file-name">{{ pdf_file.original_filename }}</td>
+                                    <td>{{ pdf_file.get_file_size_display }}</td>
+                                    <td>{{ pdf_file.upload_date|date:"M d, Y H:i" }}</td>
+                                    <td>
+                                        <span class="badge bg-{% if pdf_file.status == 'ready' %}success{% elif pdf_file.status == 'error' %}danger{% else %}warning{% endif %}">
+                                            {{ pdf_file.get_status_display }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if pdf_file.extracted_text %}
+                                        <button type="button" class="btn btn-sm btn-info" onclick="showExtractedText('{{ pdf_file.extracted_text|escapejs }}', '{{ pdf_file.original_filename }}')">
+                                            <i class="fas fa-eye"></i> View Text
+                                        </button>
+                                        {% endif %}
+                                         <!-- <button type="button" class="btn btn-sm btn-danger" onclick="deletePDFFile({{ pdf_file.id }}, '{{ pdf_file.original_filename }}')">
+                                            <i class="fas fa-trash"></i> Delete
+                                        </button> -->
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="6" class="text-center text-muted">
+                                        <i class="fas fa-file-pdf fa-2x mb-2"></i><br>
+                                        No PDF files uploaded yet
+                                    </td>
+                                </tr>
+                                {% endfor %}
 
-                                    {% if page_obj.has_next %}
-                                        <li class="page-item">
-                                            <a class="page-link" href="?page={{ page_obj.next_page_number }}">{% trans 'Next' %}</a>
-                                        </li>
-                                        <li class="page-item">
-                                            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">{% trans 'Last' %}</a>
-                                        </li>
-                                    {% endif %}
-                                </ul>
-                            </nav>
-                        {% endif %}
-                    {% else %}
-                        <div class="text-center py-5">
-                            <i class="fas fa-folder-open fa-3x text-muted mb-3"></i>
-                            <h5 class="text-muted">{% trans 'No files uploaded yet' %}</h5>
-                            <p class="text-muted">{% trans 'Upload files with your articles to see them here.' %}</p>
-                            <a href="{% url 'articles:create' %}" class="btn btn-primary">
-                                <i class="fas fa-plus"></i> {% trans 'Create Article with File' %}
-                            </a>
+                                <!-- Article Files -->
+                                {% for article in articles %}
+                                <tr class="file-row" data-file-type="article">
+                                    <td>
+                                        <span class="badge bg-primary">
+                                            <i class="fas fa-file-alt"></i> Article
+                                        </span>
+                                    </td>
+                                    <td class="file-name">{{ article.title }}</td>
+                                    <td>{{ article.get_file_size_display }}</td>
+                                    <td>{{ article.created_at|date:"M d, Y H:i" }}</td>
+                                    <td>
+                                        <span class="badge bg-success">Ready</span>
+                                    </td>
+                                    <td>
+                                        <!-- <button type="button" class="btn btn-sm btn-info" onclick="showFileInfo({{ article.id }})">
+                                            <i class="fas fa-info-circle"></i> Info
+                                        </button> -->
+                                        <!-- <button type="button" class="btn btn-sm btn-danger" onclick="deleteFile({{ article.id }}, '{{ article.title }}')">
+                                            <i class="fas fa-trash"></i> Delete
+                                        </button> -->
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Statistics -->
+                    <div class="row mt-4">
+                        <div class="col-md-3">
+                            <div class="card bg-primary text-white">
+                                <div class="card-body text-center">
+                                    <h4>{{ total_files }}</h4>
+                                    <small>Total Files</small>
+                                </div>
+                            </div>
                         </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- File Info Modal -->
-<div class="modal fade" id="fileInfoModal" tabindex="-1" aria-labelledby="fileInfoModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="fileInfoModalLabel">{% trans 'File Information' %}</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% trans 'Close' %}"></button>
-            </div>
-            <div class="modal-body" id="fileInfoContent">
-                <div class="text-center">
-                    <div class="spinner-border" role="status">
-                        <span class="visually-hidden">{% trans 'Loading...' %}</span>
+                        <div class="col-md-3">
+                            <div class="card bg-success text-white">
+                                <div class="card-body text-center">
+                                    <h4>{{ total_pdf_files }}</h4>
+                                    <small>PDF Files</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-info text-white">
+                                <div class="card-body text-center">
+                                    <h4>{{ total_article_files }}</h4>
+                                    <small>Article Files</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-warning text-white">
+                                <div class="card-body text-center">
+                                    <h4>{{ total_size_mb }} MB</h4>
+                                    <small>Total Size</small>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans 'Close' %}</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modals -->
+<div class="modal fade" id="extractedTextModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Extracted Text</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Text content will be inserted here -->
             </div>
         </div>
     </div>
 </div>
 
-<!-- Delete Confirmation Modal -->
-<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
+<div class="modal fade" id="fileInfoModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="deleteModalLabel">{% trans 'Confirm Delete' %}</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% trans 'Close' %}"></button>
+                <h5 class="modal-title">File Information</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <p>{% trans 'Are you sure you want to delete this file from Google Drive?' %}</p>
-                <p class="text-muted" id="deleteFileName"></p>
-                <div class="alert alert-warning">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    {% trans 'This action cannot be undone.' %}
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans 'Cancel' %}</button>
-                <button type="button" class="btn btn-danger" id="confirmDeleteBtn">{% trans 'Delete' %}</button>
+                <!-- File info will be inserted here -->
             </div>
         </div>
     </div>
 </div>
+
+{% csrf_token %}
 {% endblock %}
 
 {% block extra_js %}
 <script>
-function showFileInfo(articleId) {
-    const modal = new bootstrap.Modal(document.getElementById('fileInfoModal'));
-    const content = document.getElementById('fileInfoContent');
+// Simple upload handler
+function handleUploadClick() {
+    console.log('handleUploadClick function called!');
+    const fileInput = document.getElementById('pdfFileInput');
     
-    // Show loading spinner
-    content.innerHTML = `
-        <div class="text-center">
-            <div class="spinner-border" role="status">
-                <span class="visually-hidden">{% trans 'Loading...' %}</span>
-            </div>
-        </div>
-    `;
+    if (!fileInput.files || fileInput.files.length === 0) {
+        alert('Please select PDF files first!\n\n1. Click "Choose Files" above\n2. Select PDF files from your computer\n3. Then click "Save & Upload to Google Drive"');
+        return;
+    }
     
-    modal.show();
+    // Show upload status
+    const uploadStatus = document.getElementById('uploadStatus');
+    const statusText = document.getElementById('statusText');
+    const progressBar = document.getElementById('progressBar');
     
-    // Fetch file info
-    fetch(`{% url 'articles:get_file_info' 0 %}`.replace('0', articleId))
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                const info = data.file_info;
-                content.innerHTML = `
-                    <div class="row">
-                        <div class="col-6"><strong>{% trans 'File ID' %}:</strong></div>
-                        <div class="col-6">${info.file_id}</div>
-                    </div>
-                    <div class="row">
-                        <div class="col-6"><strong>{% trans 'File Name' %}:</strong></div>
-                        <div class="col-6">${info.filename}</div>
-                    </div>
-                    <div class="row">
-                        <div class="col-6"><strong>{% trans 'File Size' %}:</strong></div>
-                        <div class="col-6">${info.size ? (info.size / 1024 / 1024).toFixed(2) + ' MB' : 'Unknown'}</div>
-                    </div>
-                    <div class="row">
-                        <div class="col-6"><strong>{% trans 'Created' %}:</strong></div>
-                        <div class="col-6">${info.created_time ? new Date(info.created_time).toLocaleString() : 'Unknown'}</div>
-                    </div>
-                    <div class="row">
-                        <div class="col-6"><strong>{% trans 'Modified' %}:</strong></div>
-                        <div class="col-6">${info.modified_time ? new Date(info.modified_time).toLocaleString() : 'Unknown'}</div>
-                    </div>
-                    <hr>
-                    <div class="d-grid gap-2">
-                        <a href="${info.web_view_link}" target="_blank" class="btn btn-primary">
-                            <i class="fas fa-external-link-alt"></i> {% trans 'View in Google Drive' %}
-                        </a>
-                        <a href="${info.web_content_link}" target="_blank" class="btn btn-success">
-                            <i class="fas fa-download"></i> {% trans 'Download' %}
-                        </a>
-                    </div>
-                `;
-            } else {
-                content.innerHTML = `
-                    <div class="alert alert-danger">
-                        <i class="fas fa-exclamation-triangle"></i>
-                        ${data.message}
-                    </div>
-                `;
-            }
-        })
-        .catch(error => {
-            content.innerHTML = `
-                <div class="alert alert-danger">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    {% trans 'Error loading file information' %}
-                </div>
-            `;
-        });
-}
-
-function deleteFile(articleId, fileName) {
-    const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
-    const fileNameElement = document.getElementById('deleteFileName');
-    const confirmBtn = document.getElementById('confirmDeleteBtn');
+    if (uploadStatus) uploadStatus.style.display = 'block';
+    if (statusText) statusText.textContent = `Uploading ${fileInput.files.length} file(s)...`;
+    if (progressBar) progressBar.style.width = '0%';
     
-    fileNameElement.textContent = fileName;
+    // Upload each file
+    const files = Array.from(fileInput.files);
+    let completedFiles = 0;
     
-    // Remove existing event listeners
-    const newConfirmBtn = confirmBtn.cloneNode(true);
-    confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
-    
-    // Add new event listener
-    newConfirmBtn.addEventListener('click', function() {
-        fetch(`{% url 'articles:delete_file_from_drive' 0 %}`.replace('0', articleId), {
-            method: 'POST',
-            headers: {
-                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
-                'Content-Type': 'application/json',
-            },
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                // Show success message
-                showAlert('success', data.message);
-                // Reload the page
-                setTimeout(() => {
-                    location.reload();
-                }, 1500);
-            } else {
-                showAlert('danger', data.message);
-            }
-            modal.hide();
-        })
-        .catch(error => {
-            showAlert('danger', '{% trans "Error deleting file" %}');
-            modal.hide();
-        });
+    files.forEach((file, index) => {
+        uploadSingleFile(file, index + 1, files.length);
     });
     
+    function uploadSingleFile(file, currentIndex, totalFiles) {
+        const formData = new FormData();
+        formData.append('pdf_file', file);
+        
+        // Add CSRF token
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
+        if (csrfToken) {
+            formData.append('csrfmiddlewaretoken', csrfToken.value);
+        }
+        
+        fetch('/articles/upload-pdf/', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': csrfToken ? csrfToken.value : ''
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            completedFiles++;
+            const progress = Math.round((completedFiles / totalFiles) * 100);
+            if (progressBar) progressBar.style.width = progress + '%';
+            
+            if (data.success) {
+                if (statusText) {
+                    statusText.innerHTML = `✅ File ${currentIndex}/${totalFiles}: ${file.name}<br>✓ Uploaded successfully`;
+                }
+                alert(`✅ File ${currentIndex}/${totalFiles}: "${file.name}" uploaded successfully!`);
+            } else {
+                if (statusText) {
+                    statusText.innerHTML = `❌ File ${currentIndex}/${totalFiles}: ${file.name}<br>Error: ${data.message}`;
+                }
+                alert(`❌ File ${currentIndex}/${totalFiles}: "${file.name}" failed - ${data.message}`);
+            }
+            
+            // If all files completed
+            if (completedFiles === totalFiles) {
+                setTimeout(() => {
+                    alert(`Upload completed!\n\n${completedFiles}/${totalFiles} files processed successfully.`);
+                    window.location.reload();
+                }, 2000);
+            }
+        })
+        .catch(error => {
+            console.error('Upload error:', error);
+            completedFiles++;
+            if (statusText) {
+                statusText.innerHTML = `❌ Error uploading ${file.name}: ${error.message}`;
+            }
+            alert(`❌ Error uploading "${file.name}": ${error.message}`);
+            
+            if (completedFiles === totalFiles) {
+                alert('Upload completed with some errors. Check the status above.');
+            }
+        });
+    }
+}
+
+// Test functions
+function testUpload() {
+    const fileInput = document.getElementById('pdfFileInput');
+    if (fileInput.files && fileInput.files.length > 0) {
+        alert(`Test: Found ${fileInput.files.length} files selected.`);
+    } else {
+        alert('Test: No files selected. Please select files first.');
+    }
+}
+
+function testButtonClick() {
+    alert('Button click test works! JavaScript is functioning.');
+}
+
+function testUploadEndpoint() {
+    fetch('/articles/upload-pdf/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: JSON.stringify({test: 'data'})
+    })
+    .then(response => response.text())
+    .then(text => {
+        alert(`Upload endpoint test: Status ${response.status}\nResponse: ${text.substring(0, 100)}`);
+    })
+    .catch(error => {
+        alert(`Upload endpoint failed: ${error.message}`);
+    });
+}
+
+function showExtractedText(text, fileName) {
+    const modalElement = document.getElementById('extractedTextModal');
+    const modalTitle = modalElement.querySelector('.modal-title');
+    const modalBody = modalElement.querySelector('.modal-body');
+    
+    modalTitle.textContent = `Extracted Text: ${fileName}`;
+    modalBody.innerHTML = `<pre style="white-space: pre-wrap; max-height: 400px; overflow-y: auto;">${text}</pre>`;
+    
+    const modal = new bootstrap.Modal(modalElement);
     modal.show();
 }
 
-function showAlert(type, message) {
-    const alertDiv = document.createElement('div');
-    alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
-    alertDiv.innerHTML = `
-        ${message}
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    `;
+// Event listeners
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('File manager JavaScript loaded');
     
-    const container = document.querySelector('.container-fluid');
-    container.insertBefore(alertDiv, container.firstChild);
+    const fileInput = document.getElementById('pdfFileInput');
+    const uploadBtn = document.getElementById('uploadBtn');
+    const testUploadBtn = document.getElementById('testUploadBtn');
+    const testButtonClickBtn = document.getElementById('testButtonClickBtn');
+    const testUploadEndpointBtn = document.getElementById('testUploadEndpointBtn');
+    const clearSearchBtn = document.getElementById('clearSearchBtn');
     
-    // Auto-dismiss after 5 seconds
-    setTimeout(() => {
-        if (alertDiv.parentNode) {
-            alertDiv.remove();
+    console.log('Upload button found:', uploadBtn);
+    
+    if (!fileInput || !uploadBtn) {
+        console.error('Required elements not found');
+        return;
+    }
+    
+    // File selection handler
+    fileInput.addEventListener('change', function() {
+        const files = this.files;
+        if (files.length > 0) {
+            uploadBtn.innerHTML = `<i class="fas fa-cloud-upload-alt"></i> Upload ${files.length} File(s) to Google Drive`;
+            uploadBtn.classList.remove('btn-secondary');
+            uploadBtn.classList.add('btn-success');
+        } else {
+            uploadBtn.innerHTML = `<i class="fas fa-cloud-upload-alt"></i> Save & Upload to Google Drive`;
+            uploadBtn.classList.remove('btn-success');
+            uploadBtn.classList.add('btn-secondary');
         }
-    }, 5000);
-}
+    });
+    
+    // Button click handlers
+    uploadBtn.addEventListener('click', function() {
+        console.log('Upload button clicked!');
+        handleUploadClick();
+    });
+    
+    if (testUploadBtn) {
+        testUploadBtn.addEventListener('click', testUpload);
+    }
+    if (testButtonClickBtn) {
+        testButtonClickBtn.addEventListener('click', testButtonClick);
+    }
+    if (testUploadEndpointBtn) {
+        testUploadEndpointBtn.addEventListener('click', testUploadEndpoint);
+    }
+    if (clearSearchBtn) {
+        clearSearchBtn.addEventListener('click', function() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('filterType').value = 'all';
+            const fileRows = document.querySelectorAll('.file-row');
+            fileRows.forEach(row => {
+                row.style.display = '';
+            });
+        });
+    }
+    
+    console.log('All event listeners set up successfully');
+});
 </script>
 {% endblock %}

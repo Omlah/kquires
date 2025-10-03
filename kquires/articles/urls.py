@@ -18,6 +18,10 @@ from .views import (
     FileManagerView,
     delete_file_from_drive,
     get_file_info,
+    upload_pdf,
+    extract_pdf_text,
+    delete_pdf_file,
+    search_files,
 )
 from .api_views import translate_article_view, get_task_status  # Added from feature branch
 
@@ -51,4 +55,10 @@ urlpatterns = [
     path("files/", FileManagerView.as_view(), name="file_manager"),
     path("files/delete/<int:article_id>/", delete_file_from_drive, name="delete_file_from_drive"),
     path("files/info/<int:article_id>/", get_file_info, name="get_file_info"),
+    
+    # PDF Management endpoints
+    path("upload-pdf/", upload_pdf, name="upload_pdf"),
+    path("extract-pdf-text/", extract_pdf_text, name="extract_pdf_text"),
+    path("delete-pdf/<int:file_id>/", delete_pdf_file, name="delete_pdf_file"),
+    path("search-files/", search_files, name="search_files"),
 ]

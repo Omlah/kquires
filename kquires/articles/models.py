@@ -344,3 +344,173 @@ class ArticleImage(models.Model):
     
     def __str__(self):
         return f"Image for {self.article.title}"
+
+
+class PDFFile(models.Model):
+    """Model to store PDF files with extracted text"""
+    
+    STATUS_CHOICES = [
+        ('uploading', 'Uploading'),
+        ('processing', 'Processing'),
+        ('ready', 'Ready'),
+        ('error', 'Error'),
+    ]
+    
+    original_filename = models.CharField(max_length=255, verbose_name='Original Filename')
+    
+    # Google Drive integration fields
+    google_drive_file_id = models.CharField(max_length=255, blank=True, null=True, verbose_name='Google Drive File ID')
+    google_drive_filename = models.CharField(max_length=255, blank=True, null=True, verbose_name='Google Drive Filename')
+    google_drive_web_view_link = models.URLField(blank=True, null=True, verbose_name='Google Drive Web View Link')
+    google_drive_web_content_link = models.URLField(blank=True, null=True, verbose_name='Google Drive Web Content Link')
+    google_drive_file_size = models.BigIntegerField(blank=True, null=True, verbose_name='Google Drive File Size')
+    
+    # PDF-specific fields
+    extracted_text = models.TextField(blank=True, null=True, verbose_name='Extracted Text')
+    page_count = models.PositiveIntegerField(blank=True, null=True, verbose_name='Page Count')
+    
+    # Status and metadata
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='uploading', verbose_name='Status')
+    upload_date = models.DateTimeField(auto_now_add=True, verbose_name='Upload Date')
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Created By')
+    error_message = models.TextField(blank=True, null=True, verbose_name='Error Message')
+    
+    class Meta:
+        ordering = ['-upload_date']
+        verbose_name = 'PDF File'
+        verbose_name_plural = 'PDF Files'
+    
+    def __str__(self):
+        return f"{self.original_filename}"
+    
+    def extract_text_from_pdf(self, file_content):
+        """Extract text from PDF content"""
+        try:
+            from PyPDF2 import PdfReader
+            import io
+            
+            # Create a BytesIO object from the PDF content
+            pdf_buffer = io.BytesIO(file_content)
+            pdf_reader = PdfReader(pdf_buffer)
+            
+            # Extract text from all pages
+            text_content = []
+            self.page_count = len(pdf_reader.pages)
+            
+            for page_num, page in enumerate(pdf_reader.pages):
+                try:
+                    page_text = page.extract_text()
+                    if page_text.strip():  # Only add non-empty pages
+                        text_content.append(page_text)
+                except Exception as e:
+                    print(f"Error extracting text from page {page_num + 1}: {str(e)}")
+                    continue
+            
+            self.extracted_text = '\n\n'.join(text_content)
+            self.status = 'ready'
+            self.save()
+            
+            return {
+                'success': True,
+                'text': self.extracted_text,
+                'page_count': self.page_count
+            }
+            
+        except Exception as e:
+            self.status = 'error'
+            self.error_message = str(e)
+            self.save()
+            
+            return {
+                'success': False,
+                'error': str(e)
+            }
+    
+    def upload_to_google_drive(self, file_content, filename=None):
+        """Upload PDF to Google Drive and update metadata"""
+        try:
+            from ..utils.google_drive_service import google_drive_service
+            
+            # Use original filename if not provided
+            if not filename:
+                filename = self.original_filename
+            
+            # Upload to Google Drive
+            result = google_drive_service.upload_file(
+                file_content=file_content,
+                filename=filename,
+                mime_type='application/pdf'
+            )
+            
+            if result.get('success'):
+                # Update Google Drive fields
+                self.google_drive_file_id = result.get('file_id')
+                self.google_drive_filename = result.get('filename')
+                self.google_drive_web_view_link = result.get('web_view_link')
+                self.google_drive_web_content_link = result.get('web_content_link')
+                self.google_drive_file_size = result.get('size')
+                self.status = 'processing'
+                self.save()
+                
+                # Extract text after successful upload
+                text_result = self.extract_text_from_pdf(file_content)
+                
+                return {
+                    'success': True,
+                    'file_id': result.get('file_id'),
+                    'text_result': text_result
+                }
+            else:
+                self.status = 'error'
+                self.error_message = result.get('error')
+                self.save()
+                
+                return {
+                    'success': False,
+                    'error': result.get('error')
+                }
+                
+        except Exception as e:
+            self.status = 'error'
+            self.error_message = str(e)
+            self.save()
+            
+            return {
+                'success': False,
+                'error': str(e)
+            }
+    
+    def delete_from_google_drive(self):
+        """Delete file from Google Drive and database"""
+        try:
+            if not self.google_drive_file_id:
+                return {'success': False, 'error': 'No Google Drive file ID found'}
+            
+            from ..utils.google_drive_service import google_drive_service
+            
+            result = google_drive_service.delete_file(self.google_drive_file_id)
+            
+            if result.get('success'):
+                # Delete the PDF record
+                self.delete()
+                return {'success': True}
+            else:
+                return {'success': False, 'error': result.get('error')}
+                
+        except Exception as e:
+            return {'success': False, 'error': str(e)}
+    
+    def get_file_size_display(self):
+        """Get human-readable file size"""
+        if not self.google_drive_file_size:
+            return "Unknown"
+        
+        size = self.google_drive_file_size
+        if size < 1024:
+            return f"{size} B"
+        elif size < 1024 * 1024:
+            return f"{size / 1024:.1f} KB"
+        elif size < 1024 * 1024 * 1024:
+            return f"{size / (1024 * 1024):.1f} MB"
+        else:
+            return f"{size / (1024 * 1024 * 1024):.1f} GB"

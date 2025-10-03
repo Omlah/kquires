@@ -58,7 +58,7 @@ class GoogleDriveService:
                             "client_secret": self.client_secret,
                             "auth_uri": "https://accounts.google.com/o/oauth2/auth",
                             "token_uri": "https://oauth2.googleapis.com/token",
-                            "redirect_uris": ["http://localhost:8080/"]
+                            "redirect_uris": ["http://localhost:8080/", "http://127.0.0.1:8080/", "urn:ietf:wg:oauth:2.0:oob"]
                         }
                     }
                     
