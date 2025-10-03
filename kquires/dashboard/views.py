@@ -5,11 +5,6 @@ from ..categories.models import Category
 from ..message_alerts.models import MessageAlert
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import ObjectDoesNotExist
-from django.http import JsonResponse
-from django.db.models import Q
-from django.db.models import Q, F, Func, Value, CharField
-from django.db.models.functions import Lower, Replace
-import re
 from django.contrib.auth.models import User
 from django.contrib.auth import get_user_model  # Import the User model or your custom user model
 from ..departments.models import Department  # Import the Department model
@@ -118,116 +113,5 @@ class DashboardStatisticsView(LoginRequiredMixin, ListView):
         context["total_users"] = User.objects.count()
         context['new_articles'] = Article.objects.order_by('-created_at')[:5] # Get the 5 most recent articles
         return context
-
-def search_articles(request):
-    query = request.GET.get("q", "").strip()
-    if not query:
-        return JsonResponse({"results": []})  # Empty response if query is empty
-
-    # Search in multiple fields with comprehensive database search
-    query_normalized = re.sub(r'[^a-zA-Z0-9\u0600-\u06FF]', ' ', query).lower()  # Include Arabic characters
-
-    # Create a comprehensive search query that searches across all relevant fields
-    search_conditions = Q()
-    
-    # Search in main fields
-    search_conditions |= Q(title__icontains=query)
-    search_conditions |= Q(short_description__icontains=query)
-    search_conditions |= Q(brief_description__icontains=query)
-    
-    # Search in Arabic fields if they exist
-    search_conditions |= Q(title_ar__icontains=query)
-    search_conditions |= Q(short_description_ar__icontains=query)
-    search_conditions |= Q(brief_description_ar__icontains=query)
-    search_conditions |= Q(title_arabic__icontains=query)
-    search_conditions |= Q(short_description_arabic__icontains=query)
-    search_conditions |= Q(brief_description_arabic__icontains=query)
-    
-    # Search in category and subcategory names
-    search_conditions |= Q(category__name__icontains=query)
-    search_conditions |= Q(subcategory__name__icontains=query)
-    
-    # Search in user information
-    search_conditions |= Q(user__first_name__icontains=query)
-    search_conditions |= Q(user__last_name__icontains=query)
-    search_conditions |= Q(user__name__icontains=query)
-    search_conditions |= Q(user__employee_id__icontains=query)
-    search_conditions |= Q(user__email__icontains=query)
-    
-    # Search in technical terms (JSON field)
-    search_conditions |= Q(technical_terms__icontains=query)
-    
-    # Also search with normalized query for better matching
-    if query_normalized != query.lower():
-        search_conditions |= Q(title__icontains=query_normalized)
-        search_conditions |= Q(short_description__icontains=query_normalized)
-        search_conditions |= Q(brief_description__icontains=query_normalized)
-
-    articles = Article.objects.filter(
-        search_conditions,
-    ).select_related('category', 'subcategory', 'user').values(
-        "id", 
-        "title", 
-        "short_description",
-        "brief_description",
-        "category__name",
-        "subcategory__name",
-        "created_at"
-    ).order_by('-created_at')[:10]  # Increased limit and added ordering
-
-    return JsonResponse({"results": list(articles)})
-
-
-def search_results_view(request):
-    query = request.GET.get('q', '').strip()
-    results = []
-
-    print(f"query: {query}")
-
-    if query:
-        # Use the same comprehensive search logic as search_articles
-        query_normalized = re.sub(r'[^a-zA-Z0-9\u0600-\u06FF]', ' ', query).lower()
-        
-        # Create a comprehensive search query that searches across all relevant fields
-        search_conditions = Q()
-        
-        # Search in main fields
-        search_conditions |= Q(title__icontains=query)
-        search_conditions |= Q(short_description__icontains=query)
-        search_conditions |= Q(brief_description__icontains=query)
-        
-        # Search in Arabic fields if they exist
-        search_conditions |= Q(title_ar__icontains=query)
-        search_conditions |= Q(short_description_ar__icontains=query)
-        search_conditions |= Q(brief_description_ar__icontains=query)
-        search_conditions |= Q(title_arabic__icontains=query)
-        search_conditions |= Q(short_description_arabic__icontains=query)
-        search_conditions |= Q(brief_description_arabic__icontains=query)
-        
-        # Search in category and subcategory names
-        search_conditions |= Q(category__name__icontains=query)
-        search_conditions |= Q(subcategory__name__icontains=query)
-        
-        # Search in user information
-        search_conditions |= Q(user__first_name__icontains=query)
-        search_conditions |= Q(user__last_name__icontains=query)
-        search_conditions |= Q(user__name__icontains=query)
-        search_conditions |= Q(user__employee_id__icontains=query)
-        search_conditions |= Q(user__email__icontains=query)
-        
-        # Search in technical terms (JSON field)
-        search_conditions |= Q(technical_terms__icontains=query)
-        
-        # Also search with normalized query for better matching
-        if query_normalized != query.lower():
-            search_conditions |= Q(title__icontains=query_normalized)
-            search_conditions |= Q(short_description__icontains=query_normalized)
-            search_conditions |= Q(brief_description__icontains=query_normalized)
-
-        results = Article.objects.filter(
-            search_conditions,
-        ).select_related('category', 'subcategory', 'user').order_by('-created_at')
-
-    return render(request, 'dashboard/partials/search_results.html', {'results': results, 'query': query})
 
 

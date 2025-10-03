@@ -57,10 +57,17 @@
     .btn-new:hover {
       background-color: #0056b3;
     }
-    .search-bar input {
+    .search-bar {
       width: 300px;
-      padding: 8px;
-      border-radius: 4px;
+    }
+    .search-bar .input-group {
+      width: 100%;
+    }
+    .search-bar .input-group input {
+      border-radius: 4px 0 0 4px;
+    }
+    .search-bar .input-group button {
+      border-radius: 0 4px 4px 0;
     }
     .btn-categories {
       background-color: #f1f1f1;
@@ -77,22 +84,27 @@
     </div>
 
     <div class="search-bar mx-auto" style="width: 300px; position: relative;">
-      <form id="search-form" hx-get="{% url 'articles:list' %}" hx-target="#articles-table" hx-trigger="keyup changed delay:300ms">
-        <input 
-            type="text" 
-            id="article-search" 
-            class="form-control form-control-sm" 
-            placeholder="{% trans 'Search Articles' %}" 
-            name="q"
-            value="{{ search_query|default:'' }}"
-            {% if LANGUAGE_CODE == 'ar' %}
-                dir="rtl"
-                style="padding-right: 10px; text-align: right;"
-            {% else %}
-                dir="ltr"
-                style="padding-left: 10px; text-align: left;"
-            {% endif %}
-        />
+      <form id="search-form" method="GET" action="{% url 'articles:list' %}">
+        <div class="input-group">
+          <input 
+              type="text" 
+              id="article-search" 
+              class="form-control form-control-sm" 
+              placeholder="{% trans 'Search Articles' %}" 
+              name="q"
+              value="{{ search_query|default:'' }}"
+              {% if LANGUAGE_CODE == 'ar' %}
+                  dir="rtl"
+                  style="padding-right: 10px; text-align: right;"
+              {% else %}
+                  dir="ltr"
+                  style="padding-left: 10px; text-align: left;"
+              {% endif %}
+          />
+          <button type="submit" class="btn btn-primary btn-sm">
+            <i class="fas fa-search"></i>
+          </button>
+        </div>
       </form>
   
       {% if LANGUAGE_CODE == 'ar' %}
@@ -555,6 +567,14 @@
     document.getElementById('category').addEventListener('change', function() {
       const categoryId = this.value
       loadSubcategories(categoryId)
+    })
+
+    // Handle Enter key press for search
+    document.getElementById('article-search').addEventListener('keypress', function(event) {
+      if (event.key === 'Enter') {
+        event.preventDefault()
+        document.getElementById('search-form').submit()
+      }
     })
 
     // Test translation service
