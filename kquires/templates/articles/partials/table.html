@@ -174,13 +174,21 @@
                       {% endif %}
                   </td> -->
                   <td class="no-modal">
-                    {% if article.attachment %}
-                    <a href="{{ article.attachment.url }}" download>
-                        <img src="{% static 'images/download.svg' %}" alt="{% trans 'download' %}" class="ms-2" style="width: 20px; height: 20px;">
-                    </a>
-                    {% else %}
+                    <div class="d-flex gap-1">
+                      {% if article.attachment %}
+                      <a href="{{ article.attachment.url }}" download title="{% trans 'Download Local File' %}">
+                          <img src="{% static 'images/download.svg' %}" alt="{% trans 'download' %}" class="ms-2" style="width: 20px; height: 20px;">
+                      </a>
+                      {% endif %}
+                      {% if article.google_drive_web_content_link %}
+                      <a href="{{ article.google_drive_web_content_link }}" target="_blank" title="{% trans 'Download from Google Drive' %}">
+                          <i class="fab fa-google-drive text-primary" style="font-size: 20px;"></i>
+                      </a>
+                      {% endif %}
+                      {% if not article.attachment and not article.google_drive_web_content_link %}
                        <img src="{% static 'images/download_disabled.svg' %}" alt="{% trans 'download' %}" class="ms-2" style="width: 20px; height: 20px;">
                      {% endif %}
+                    </div>
                   </td>
                 </tr>
               {% endfor %}
