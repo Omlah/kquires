@@ -5,11 +5,6 @@ from ..categories.models import Category
 from ..message_alerts.models import MessageAlert
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import ObjectDoesNotExist
-from django.http import JsonResponse
-from django.db.models import Q
-from django.db.models import Q, F, Func, Value, CharField
-from django.db.models.functions import Lower, Replace
-import re
 from django.contrib.auth.models import User
 from django.contrib.auth import get_user_model  # Import the User model or your custom user model
 from ..departments.models import Department  # Import the Department model
@@ -118,79 +113,5 @@ class DashboardStatisticsView(LoginRequiredMixin, ListView):
         context["total_users"] = User.objects.count()
         context['new_articles'] = Article.objects.order_by('-created_at')[:5] # Get the 5 most recent articles
         return context
-
-def search_articles(request):
-    query = request.GET.get("q", "").strip()
-    if not query:
-        return JsonResponse({"results": []})  # Empty response if query is empty
-
-    # Search in title and short description
-    query_normalized = re.sub(r'[^a-zA-Z0-9]', ' ', query).lower()
-
-    articles = Article.objects.annotate(
-        normalized_title=Lower(
-            Func(
-                Replace(
-                    Replace(
-                        Replace(F("title"), Value("_"), Value(" ")),
-                        Value("-"), Value(" ")
-                    ),
-                    Value("@"), Value(" ")
-                ),
-                function="LOWER",
-                output_field=CharField()
-            )
-        ),
-        normalized_description=Lower(
-            Func(
-                Replace(
-                    Replace(
-                        Replace(F("short_description"), Value("_"), Value(" ")),
-                        Value("-"), Value(" ")
-                    ),
-                    Value("@"), Value(" ")
-                ),
-                function="LOWER",
-                output_field=CharField()
-            )
-        ),
-        normalized_brief_description=Lower(
-            Func(
-                Replace(
-                    Replace(
-                        Replace(F("brief_description"), Value("_"), Value(" ")),
-                        Value("-"), Value(" ")
-                    ),
-                    Value("@"), Value(" ")
-                ),
-                function="LOWER",
-                output_field=CharField()
-            )
-        )
-    ).filter(
-        Q(normalized_title__icontains=query_normalized) |
-        Q(normalized_description__icontains=query_normalized) |
-        Q(normalized_brief_description__icontains=query_normalized),
-        # visibility=1,
-        status="approved"
-    ).values("id", "title", "short_description")[:5]
-
-    return JsonResponse({"results": list(articles)})
-
-
-def search_results_view(request):
-    query = request.GET.get('q', '').strip()
-    results = []
-
-    print(f"query: {query}")
-
-    if query:
-        # Correct the filter syntax
-        results = Article.objects.filter(
-            Q(title__icontains=query) |
-            Q(short_description__icontains=query)
-        )
-
-    return render(request, 'dashboard/partials/search_results.html', {'results': results, 'query': query})
 
 

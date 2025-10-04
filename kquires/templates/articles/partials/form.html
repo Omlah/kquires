@@ -84,7 +84,7 @@
 
 {% load i18n %}
 <div class="modal fade" id="newArticleModal" tabindex="-1" aria-labelledby="newArticleModalLabel" aria-hidden="true">
-  <form method="POST" action="{% url 'articles:create' %}" enctype="multipart/form-data">
+  <form method="POST" action="" id="articleForm" enctype="multipart/form-data">
     {% csrf_token %}
     <input type="hidden" name="id" id="id" />
     <input type="hidden" name="current_language" id="current_language" value="english" />
